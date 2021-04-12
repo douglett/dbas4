@@ -179,9 +179,12 @@ struct Output {
 		printf("	array [%d]\n", 0);  }
 	void dim_end() {
 		printf("	dim end\n");  }
-	void func_start(const string& id) {}
-	void func_arg(const string& type, const string& id, bool isarray) {}
-	void func_end() {}
+	void func_start(const string& id) {
+		printf("function start: [%s]\n", id.c_str());  }
+	void func_arg(const string& type, const string& id, bool isarray) {
+		printf("	arg: [%s] [%s] %s\n", type.c_str(), id.c_str(), (isarray ? "array" : ""));  }
+	void func_end() {
+		printf("	function end\n");  }
 };
 
 
@@ -265,6 +268,7 @@ void ploop() {
 			else if (inp.get("@identifier @identifier", r2))  outp.func_arg(r2.at(0), r2.at(1), false);
 			else if (inp.get("@identifier '[ ']", r2))  outp.func_arg("int", r2.at(0), true);
 			else if (inp.get("@identifier", r2))  outp.func_arg("int", r2.at(0), false);
+			else    break;
 			if (!inp.get("',")) break;
 		}
 		inp.expect("') endl");
@@ -274,7 +278,7 @@ void ploop() {
 		break;
 
 	case PState::PS_FUNCTION_END:
-		inp.expect("'end 'function endl");
+		inp.expect("'end 'function endall");
 		outp.func_end();
 		state.pop();
 		break;
@@ -283,6 +287,7 @@ void ploop() {
 		while (true) {
 			if      (inp.get("endl"))  ;
 			// else if (inp.get("@identifier"))  ;
+			else    break;
 		}
 		state.pop();
 		break;
@@ -327,6 +332,16 @@ void test_globals() {
 	state.push(PState::PS_GLOBAL_BLOCK);
 	ploop();
 }
+void test_function() {
+	inp.load({
+		// "function foo()",
+		"function bar(a, float b[])",
+		"",
+		"end function",
+	});
+	state.push(PState::PS_FUNCTION);
+	ploop();
+}
 
 
 int main() {
@@ -335,6 +350,7 @@ int main() {
 	// farttest(); exit(1);
 	
 	// test_struct();
-	test_struct2();
+	// test_struct2();
 	// test_globals();
+	test_function();
 }
