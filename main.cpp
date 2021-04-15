@@ -51,6 +51,7 @@ struct Pattern {
 		case PT_LITERAL:
 			for (auto c : pattern) {
 				if (input.peek() != c)  return 0;
+				// TODO: word boundry check needed?
 				result.push_back(input.get());
 			}
 			return 1;
@@ -59,6 +60,15 @@ struct Pattern {
 				if (!Helpers::is_alpha(input.peek()))  return 0;
 				result += input.get();
 				while (Helpers::is_alphanum(input.peek()))  result += input.get();
+				return 1;
+			}
+			else if (pattern == "string_literal") {
+				if (input.peek() != '"')  return 0;
+				input.get();
+				while (input.peek()!='\n' && input.peek()!=EOF && input.peek()!='\"')
+					result += input.get();
+				if (input.peek() != '"')  return 0;
+				input.get();
 				return 1;
 			}
 			else if (pattern == "endl")
@@ -185,6 +195,14 @@ struct Output {
 		printf("	arg: [%s] [%s] %s\n", type.c_str(), id.c_str(), (isarray ? "array" : ""));  }
 	void func_end() {
 		printf("	function end\n");  }
+	void print_start() {
+		printf("print start:\n");  }
+	void string_literal(const string& literal) {
+		printf("	literal: [%s]\n", literal.c_str());  }
+	void varpath(const string& id) {
+		printf("	varpath: [%s]\n", id.c_str());  }
+	void print_end() {
+		printf("	print end\n");  }
 };
 
 
@@ -196,14 +214,21 @@ struct PState {
 		PS_GLOBAL_BLOCK,
 		PS_FUNCTION_BLOCK,
 		PS_STRUCT,
-		PS_GLOBAL,
+		PS_DIM,
+		PS_DIM_SHORT,
 		PS_FUNCTION,
+		PS_FUNCTION_ARGS,
 		PS_FUNCTION_END,
 		PS_BLOCK,
+		PS_STMT_PRINT,
+		PS_STMT_PRINT_ARGS,
+		PS_STRING_LITERAL,
+		PS_VARPATH,
 	};
 	vector<PSTATE_T> _stack;
 	PSTATE_T current() { return _stack.size() ? _stack.back() : PS_NONE; }
 	void push(PSTATE_T state) { _stack.push_back(state); }
+	void pushall(const vector<PSTATE_T>& states) { for (auto st : states) _stack.push_back(st); }
 	void pop() { if (_stack.size()) _stack.pop_back(); };
 };
 
@@ -219,6 +244,7 @@ void ploop() {
 
 	while (running)
 	switch (state.current()) {
+
 	case PState::PS_NONE:
 		printf("no state.\n");
 		running = 0;
@@ -229,7 +255,7 @@ void ploop() {
 	case PState::PS_FUNCTION_BLOCK:
 		if      (inp.get("endl"))  ;
 		else if (state.current() == PState::PS_STRUCT_BLOCK && inp.peek("'struct"))  state.push(PState::PS_STRUCT);
-		else if (state.current() == PState::PS_GLOBAL_BLOCK && inp.peek("'dim"))  state.push(PState::PS_GLOBAL);
+		else if (state.current() == PState::PS_GLOBAL_BLOCK && inp.peek("'dim"))  state.push(PState::PS_DIM);
 		else if (state.current() == PState::PS_FUNCTION_BLOCK && inp.peek("'function"))  state.push(PState::PS_FUNCTION);
 		else    state.pop();
 		break;
@@ -250,7 +276,7 @@ void ploop() {
 		state.pop();
 		break;
 	
-	case PState::PS_GLOBAL:
+	case PState::PS_DIM:
 		if   (inp.get("'dim @identifier @identifier", r1))  outp.dim_start(r1.at(0), r1.at(1));
 		else inp.expect("'dim @identifier", r1), outp.dim_start("int", r1.at(0));
 		if (inp.get("'[ ']")) outp.dim_isarray(true);
@@ -260,23 +286,43 @@ void ploop() {
 		state.pop();
 		break;
 
+	case PState::PS_DIM_SHORT:
+		if      (inp.get("@identifier @identifier '[ ']", r1))  outp.func_arg(r1.at(0), r1.at(1), true);
+		else if (inp.get("@identifier @identifier", r1))  outp.func_arg(r1.at(0), r1.at(1), false);
+		else if (inp.get("@identifier '[ ']", r1))  outp.func_arg("int", r1.at(0), true);
+		else 	inp.expect("@identifier", r1),  outp.func_arg("int", r1.at(0), false);
+		state.pop();
+		break;
+
+	// case PState::PS_FUNCTION:
+	// 	inp.expect("'function @identifier '(", r1);
+	// 	outp.func_start(r1.at(0));
+	// 	while (true) {
+	// 		if      (inp.get("@identifier @identifier '[ ']", r2))  outp.func_arg(r2.at(0), r2.at(1), true);
+	// 		else if (inp.get("@identifier @identifier", r2))  outp.func_arg(r2.at(0), r2.at(1), false);
+	// 		else if (inp.get("@identifier '[ ']", r2))  outp.func_arg("int", r2.at(0), true);
+	// 		else if (inp.get("@identifier", r2))  outp.func_arg("int", r2.at(0), false);
+	// 		else    break;
+	// 		if (!inp.get("',")) break;
+	// 	}
+	// 	inp.expect("') endl");
+	// 	state.pop();
+	// 	state.push(PState::PS_FUNCTION_END);
+	// 	state.push(PState::PS_BLOCK);
+	// 	break;
+	
 	case PState::PS_FUNCTION:
 		inp.expect("'function @identifier '(", r1);
 		outp.func_start(r1.at(0));
-		while (true) {
-			if      (inp.get("@identifier @identifier '[ ']", r2))  outp.func_arg(r2.at(0), r2.at(1), true);
-			else if (inp.get("@identifier @identifier", r2))  outp.func_arg(r2.at(0), r2.at(1), false);
-			else if (inp.get("@identifier '[ ']", r2))  outp.func_arg("int", r2.at(0), true);
-			else if (inp.get("@identifier", r2))  outp.func_arg("int", r2.at(0), false);
-			else    break;
-			if (!inp.get("',")) break;
-		}
-		inp.expect("') endl");
 		state.pop();
-		state.push(PState::PS_FUNCTION_END);
-		state.push(PState::PS_BLOCK);
+		state.push(PState::PS_FUNCTION_END); // end-function keywords
+		if    (inp.peek("@identifier"))  state.pushall({ PState::PS_FUNCTION_ARGS, PState::PS_DIM_SHORT }); // handle first argument, then list
+		else  inp.expect("') endl"); // empty list
 		break;
-
+	case PState::PS_FUNCTION_ARGS:
+		if      (inp.get("',"))  state.push(PState::PS_DIM_SHORT);
+		else    inp.expect("') endl"),  state.pop();
+		break;
 	case PState::PS_FUNCTION_END:
 		inp.expect("'end 'function endall");
 		outp.func_end();
@@ -284,13 +330,46 @@ void ploop() {
 		break;
 
 	case PState::PS_BLOCK:
-		while (true) {
-			if      (inp.get("endl"))  ;
-			// else if (inp.get("@identifier"))  ;
-			else    break;
-		}
+		if      (inp.get("endl"))  ;
+		else if (inp.peek("'print"))  state.push(PState:: PS_STMT_PRINT);
+		// else if (inp.peek("'prints"))  state.push(PState:: PS_STMT_PRINTS);
+		// else if (inp.peek("'input"))  ;
+		// else if (inp.peek("'if"))  ;
+		// else if (inp.peek("'while"))  ;
+		// else if (inp.peek("'return"))  ;
+		// else if (inp.peek("'call"))  ;
+		// else if (inp.peek("@identifier"))  ;
+		else    state.pop();
+		break;
+
+	case PState:: PS_STMT_PRINT:
+	// case PState:: PS_STMT_PRINTS:
+		inp.expect("'print");
+		outp.print_start();
+		state.pop();
+		if      (inp.peek("'\""))  state.pushall({ PState::PS_STMT_PRINT_ARGS, PState::PS_STRING_LITERAL });
+		else if (inp.peek("identifier"))  state.pushall({ PState::PS_STMT_PRINT_ARGS, PState::PS_VARPATH });
+		else    inp.expect("endl"),  outp.print_end();
+		break;
+	case PState::PS_STMT_PRINT_ARGS:
+		if      (inp.peek("', '\""))  inp.get("',"),  state.push(PState::PS_STRING_LITERAL);
+		else if (inp.peek("', identifier"))  inp.get("',"),  state.push(PState::PS_VARPATH);
+		else    inp.expect("endl"),  state.pop();
+		break;
+
+	case PState::PS_STRING_LITERAL:
+		inp.peek("'\"") || inp.expect("'\"");
+		inp.expect("@string_literal", r1);
+		outp.string_literal(r1.at(0));
 		state.pop();
 		break;
+
+	case PState::PS_VARPATH:
+		inp.expect("@identifier", r1);
+		outp.varpath(r1.at(0));
+		state.pop();
+		break;
+
 	} // end switch
 }
 
@@ -336,10 +415,18 @@ void test_function() {
 	inp.load({
 		// "function foo()",
 		"function bar(a, float b[])",
-		"",
+		// "",
 		"end function",
 	});
 	state.push(PState::PS_FUNCTION);
+	ploop();
+}
+void test_block() {
+	inp.load({
+		"print \"hello world\", a, \"ass\"",
+		""
+	});
+	state.push(PState::PS_BLOCK);
 	ploop();
 }
 
@@ -352,5 +439,6 @@ int main() {
 	// test_struct();
 	// test_struct2();
 	// test_globals();
-	test_function();
+	// test_function();
+	test_block();
 }
