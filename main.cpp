@@ -189,6 +189,9 @@ struct Output {
 		printf("	array [%d]\n", 0);  }
 	void dim_end() {
 		printf("	dim end\n");  }
+	void dim_short(const string& type, const string& id, bool isarray) {
+		printf("	member: [%s] [%s] %s\n", type.c_str(), id.c_str(), (isarray ? "array" : ""));
+	}
 	void func_start(const string& id) {
 		printf("function start: [%s]\n", id.c_str());  }
 	void func_arg(const string& type, const string& id, bool isarray) {
@@ -197,12 +200,32 @@ struct Output {
 		printf("	function end\n");  }
 	void print_start() {
 		printf("print start:\n");  }
-	void string_literal(const string& literal) {
-		printf("	literal: [%s]\n", literal.c_str());  }
-	void varpath(const string& id) {
-		printf("	varpath: [%s]\n", id.c_str());  }
 	void print_end() {
 		printf("	print end\n");  }
+	void if_start() {
+		printf("if start:\n");
+	}
+	void if_end() {
+		printf("	if end\n");
+	}
+	void while_start() {
+		printf("while start:\n");
+	}
+	void while_end() {
+		printf("	while end\n");
+	}
+	void return_start() {
+		printf("return start\n");
+	}
+	void return_end() {
+		printf("	return end\n");
+	}
+	void string_literal(const string& literal) {
+		printf("	literal: [%s]\n", literal.c_str());
+	}
+	void varpath(const string& id) {
+		printf("	varpath: [%s]\n", id.c_str());
+	}
 };
 
 
@@ -222,7 +245,16 @@ struct PState {
 		PS_BLOCK,
 		PS_STMT_PRINT,
 		PS_STMT_PRINT_ARGS,
+		PS_STMT_IF,
+		PS_STMT_IF2,
+		PS_STMT_IF_END,
+		PS_STMT_WHILE,
+		PS_STMT_WHILE2,
+		PS_STMT_WHILE_END,
+		PS_STMT_RETURN,
+		PS_STMT_RETURN_END,
 		PS_STRING_LITERAL,
+		PS_EXPRESSION,
 		PS_VARPATH,
 	};
 	vector<PSTATE_T> _stack;
@@ -236,6 +268,19 @@ struct PState {
 Input  inp;
 Output outp;
 PState state;
+
+
+// void dim_short(Input::Results& r1) {
+// 	if      (inp.get("@identifier @identifier '[ ']", r1))  outp.func_arg(r1.at(0), r1.at(1), true);
+// 	else if (inp.get("@identifier @identifier", r1))  outp.func_arg(r1.at(0), r1.at(1), false);
+// 	else if (inp.get("@identifier '[ ']", r1))  outp.func_arg("int", r1.at(0), true);
+// 	else 	inp.expect("@identifier", r1),  outp.func_arg("int", r1.at(0), false);
+// }
+
+
+void expression() {
+	printf("	expression:\n");
+}
 
 
 void ploop() {
@@ -287,10 +332,10 @@ void ploop() {
 		break;
 
 	case PState::PS_DIM_SHORT:
-		if      (inp.get("@identifier @identifier '[ ']", r1))  outp.func_arg(r1.at(0), r1.at(1), true);
-		else if (inp.get("@identifier @identifier", r1))  outp.func_arg(r1.at(0), r1.at(1), false);
-		else if (inp.get("@identifier '[ ']", r1))  outp.func_arg("int", r1.at(0), true);
-		else 	inp.expect("@identifier", r1),  outp.func_arg("int", r1.at(0), false);
+		if      (inp.get("@identifier @identifier '[ ']", r1))  outp.dim_short(r1.at(0), r1.at(1), true);
+		else if (inp.get("@identifier @identifier", r1))  outp.dim_short(r1.at(0), r1.at(1), false);
+		else if (inp.get("@identifier '[ ']", r1))  outp.dim_short("int", r1.at(0), true);
+		else 	inp.expect("@identifier", r1),  outp.dim_short("int", r1.at(0), false);
 		state.pop();
 		break;
 
@@ -331,19 +376,22 @@ void ploop() {
 
 	case PState::PS_BLOCK:
 		if      (inp.get("endl"))  ;
-		else if (inp.peek("'print"))  state.push(PState:: PS_STMT_PRINT);
-		// else if (inp.peek("'prints"))  state.push(PState:: PS_STMT_PRINTS);
+		else if (inp.peek("'print"))  state.push(PState::PS_STMT_PRINT);
+		// else if (inp.peek("'prints"))  state.push(PState::PS_STMT_PRINTS);
 		// else if (inp.peek("'input"))  ;
-		// else if (inp.peek("'if"))  ;
-		// else if (inp.peek("'while"))  ;
-		// else if (inp.peek("'return"))  ;
-		// else if (inp.peek("'call"))  ;
+		else if (inp.peek("'if"))  state.push(PState::PS_STMT_IF);
+		else if (inp.peek("'while"))  state.push(PState::PS_STMT_WHILE);
+		else if (inp.peek("'return"))  state.push(PState::PS_STMT_RETURN);
 		// else if (inp.peek("@identifier"))  ;
-		else    state.pop();
+		// else if (inp.peek("'call"))  ;
+		// else if (inp.peek("'let'"))  ;
+		// else if (inp.peek("'set'"))  ;
+		// else    state.pop();
+		else if (inp.peek("'end"))  state.pop();
+		else    inp.expect("'end");  // unexpected in block
 		break;
 
 	case PState:: PS_STMT_PRINT:
-	// case PState:: PS_STMT_PRINTS:
 		inp.expect("'print");
 		outp.print_start();
 		state.pop();
@@ -357,6 +405,56 @@ void ploop() {
 		else    inp.expect("endl"),  state.pop();
 		break;
 
+	case PState::PS_STMT_IF:
+		inp.expect("'if");
+		outp.if_start();
+		// expression();
+		state.pop();
+		state.pushall({ PState::PS_STMT_IF2, PState::PS_EXPRESSION });
+		break;
+	case PState::PS_STMT_IF2:
+		// inp.expect("'then endl");
+		inp.expect("endl");
+		state.pop();
+		state.pushall({ PState::PS_STMT_IF_END, PState::PS_BLOCK });
+		break;
+	case PState::PS_STMT_IF_END:
+		inp.expect("'end 'if endl");
+		outp.if_end();
+		state.pop();
+		break;
+	
+	case PState::PS_STMT_WHILE:
+		inp.expect("'while");
+		outp.while_start();
+		state.pop();
+		state.pushall({ PState::PS_STMT_WHILE2, PState::PS_EXPRESSION });
+		break;
+	case PState::PS_STMT_WHILE2:
+		// inp.expect("'then endl");
+		inp.expect("endl");
+		state.pop();
+		state.pushall({ PState::PS_STMT_WHILE_END, PState::PS_BLOCK });
+		break;
+	case PState::PS_STMT_WHILE_END:
+		inp.expect("'end 'while endl");
+		outp.while_end();
+		state.pop();
+		break;
+
+	case PState::PS_STMT_RETURN:
+		inp.expect("'return");
+		outp.return_start();
+		state.pop();
+		if    (inp.get("endl"))  outp.return_end();
+		else  state.pushall({ PState::PS_STMT_RETURN_END, PState::PS_EXPRESSION });
+		break;
+	case PState::PS_STMT_RETURN_END:
+		inp.expect("endl");
+		outp.return_end();
+		state.pop();
+		break;
+
 	case PState::PS_STRING_LITERAL:
 		inp.peek("'\"") || inp.expect("'\"");
 		inp.expect("@string_literal", r1);
@@ -364,6 +462,7 @@ void ploop() {
 		state.pop();
 		break;
 
+	case PState::PS_EXPRESSION:
 	case PState::PS_VARPATH:
 		inp.expect("@identifier", r1);
 		outp.varpath(r1.at(0));
@@ -372,6 +471,17 @@ void ploop() {
 
 	} // end switch
 }
+
+
+// void stmt_if() {
+// 	inp.expect("'if");
+// 	outp.if_start();
+// 	expression();
+// 	inp.expect("endl");
+// 	stmt_block();
+// 	inp.expect("'end 'if endl");
+// 	outp.if_end();
+// }
 
 
 void test_struct() {
@@ -424,7 +534,14 @@ void test_function() {
 void test_block() {
 	inp.load({
 		"print \"hello world\", a, \"ass\"",
-		""
+		"",
+		"if a",
+		"end if",
+		"",
+		"while a",
+		"end while",
+		"return",
+		"",
 	});
 	state.push(PState::PS_BLOCK);
 	ploop();
