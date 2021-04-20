@@ -6,6 +6,7 @@ void ps_struct();
 void ps_dim();
 void ps_function();
 void ps_block();
+void ps_expression();
 
 void ps_string_literal() {
 	inp.expect("@string_literal", r1);
@@ -13,9 +14,17 @@ void ps_string_literal() {
 }
 
 void ps_varpath() {
-	// TODO
 	inp.expect("@identifier", r1);
 	outp.varpath(r1.at(0));
+	while (true)
+		if      (inp.get("'. @identifier", r1))  outp.varpath("."+r1.at(0));
+		else if (inp.get("'[")) {
+			outp.varpath("[");
+			ps_expression();
+			inp.expect("']");
+			outp.varpath("]");
+		}
+		else    break;
 }
 
 void ps_expression() {

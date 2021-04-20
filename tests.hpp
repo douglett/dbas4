@@ -76,3 +76,9 @@ void tt_block() {
 	if      (tt_type == 1)  state.push(PState::PS_BLOCK), ploop();
 	else if (tt_type == 2)  ps_block();
 }
+void tt_variables() {
+	inp.load({
+		"foo.bar[10].foo"
+	});
+	ps_varpath();
+}
