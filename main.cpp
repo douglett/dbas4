@@ -62,6 +62,10 @@ struct Pattern {
 				while (Helpers::is_alphanum(input.peek()))  result += input.get();
 				return 1;
 			}
+			else if (pattern == "integer") {
+				while (Helpers::is_num(input.peek()))  result += input.get();
+				return result.length() > 0;
+			}
 			else if (pattern == "string_literal") {
 				if (input.peek() != '"')  return 0;
 				input.get();
@@ -177,31 +181,56 @@ struct Input {
 // ASM Output
 struct Output {
 	vector<string> output;
+	void string_literal(const string& literal) {
+		printf("	literal: [%s]\n", literal.c_str());
+	}
+	void varpath(const string& id) {
+		printf("	varpath: [%s]\n", id.c_str());
+	}
+
 	void struct_start(const string& id) {
-		printf("struct name: [%s]\n", id.c_str());  }
-	void struct_addmember(const string& type, const string& id, bool isarray) {
-		printf("	member: [%s] [%s] %s\n", type.c_str(), id.c_str(), (isarray ? "array" : ""));  }
+		printf("struct name: [%s]\n", id.c_str());
+	}
+	// void struct_addmember(const string& type, const string& id, bool isarray) {
+	// 	printf("	member: [%s] [%s] %s\n", type.c_str(), id.c_str(), (isarray ? "array" : ""));
+	// }
 	void struct_end() {
-		printf("	struct end\n");  }
+		printf("	struct end\n");
+	}
 	void dim_start(const string& type, const string& id) {
-		printf("dim [%s] as [%s]\n", type.c_str(), id.c_str());  }
+		printf("dim [%s] as [%s]\n", type.c_str(), id.c_str());
+	}
 	void dim_isarray(bool val) {
-		printf("	array [%d]\n", 0);  }
+		printf("	array [%d]\n", 0);
+	}
 	void dim_end() {
-		printf("	dim end\n");  }
+		printf("	dim end\n");
+	}
 	void dim_short(const string& type, const string& id, bool isarray) {
 		printf("	member: [%s] [%s] %s\n", type.c_str(), id.c_str(), (isarray ? "array" : ""));
 	}
 	void func_start(const string& id) {
-		printf("function start: [%s]\n", id.c_str());  }
-	void func_arg(const string& type, const string& id, bool isarray) {
-		printf("	arg: [%s] [%s] %s\n", type.c_str(), id.c_str(), (isarray ? "array" : ""));  }
+		printf("function start: [%s]\n", id.c_str());
+	}
+	// void func_arg(const string& type, const string& id, bool isarray) {
+	// 	printf("	arg: [%s] [%s] %s\n", type.c_str(), id.c_str(), (isarray ? "array" : ""));
+	// }
 	void func_end() {
-		printf("	function end\n");  }
+		printf("	function end\n");
+	}
+
 	void print_start() {
-		printf("print start:\n");  }
+		printf("print start:\n");
+	}
 	void print_end() {
-		printf("	print end\n");  }
+		printf("	print end\n");
+	}
+	void input_start() {
+		printf("input start:\n");
+	}
+	void input_end() {
+		printf("	input end\n");
+	}
 	void if_start() {
 		printf("if start:\n");
 	}
@@ -220,11 +249,23 @@ struct Output {
 	void return_end() {
 		printf("	return end\n");
 	}
-	void string_literal(const string& literal) {
-		printf("	literal: [%s]\n", literal.c_str());
+	void call_start(const string& id) {
+		printf("call start: [%s]\n", id.c_str());
 	}
-	void varpath(const string& id) {
-		printf("	varpath: [%s]\n", id.c_str());
+	void call_end() {
+		printf("	call end\n");
+	}
+	void set_start() {
+		printf("set start\n");
+	}
+	void set_end() {
+		printf("	set end\n");
+	}
+	void let_start() {
+		printf("let start\n");
+	}
+	void let_end() {
+		printf("	let end\n");
 	}
 };
 
@@ -241,7 +282,7 @@ int main() {
 	
 	// tt_struct();
 	// tt_struct2();
-	tt_globals();
+	// tt_globals();
 	// tt_function();
-	// tt_block();
+	tt_block();
 }

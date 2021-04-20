@@ -82,10 +82,10 @@ void ploop() {
 			if      (inp.peek("'end"))  break;
 			else if (inp.get("endl"))  ; // ingnore empty lines
 			// else if (inp.peek("identifier"))  state.push(PState::PS_DIM_SHORT);
-			else if (inp.get("@identifier @identifier '[ '] endl", r2))  outp.struct_addmember(r2.at(0), r2.at(1), true);
-			else if (inp.get("@identifier @identifier endl", r2))  outp.struct_addmember(r2.at(0), r2.at(1), false);
-			else if (inp.get("@identifier '[ '] endl", r2))  outp.struct_addmember("int", r2.at(0), true);
-			else if (inp.get("@identifier endl", r2))  outp.struct_addmember("int", r2.at(0), false);
+			else if (inp.get("@identifier @identifier '[ '] endl", r2))  outp.dim_short(r2.at(0), r2.at(1), true);
+			else if (inp.get("@identifier @identifier endl", r2))  outp.dim_short(r2.at(0), r2.at(1), false);
+			else if (inp.get("@identifier '[ '] endl", r2))  outp.dim_short("int", r2.at(0), true);
+			else if (inp.get("@identifier endl", r2))  outp.dim_short("int", r2.at(0), false);
 			else    break;
 		inp.expect("'end 'struct endall");
 		outp.struct_end();

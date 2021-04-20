@@ -47,21 +47,32 @@ void tt_function() {
 		// "",
 		"end function",
 	});
-	state.push(PState::PS_FUNCTION);
-	ploop();
+	if      (tt_type == 1)  state.push(PState::PS_FUNCTION), ploop();
+	else if (tt_type == 2)  ps_function();
 }
 void tt_block() {
 	inp.load({
 		"print \"hello world\", a, \"ass\"",
+		"input a",
+		"input \"ass\", a",
 		"",
 		"if a",
 		"end if",
 		"",
 		"while a",
 		"end while",
-		"return",
 		"",
+		"return",
+		"return 10",
+		"",
+		"call a()",
+		"call b(a, 10)",
+		"set a = b",
+		"let a = 10",
+		"let a = 10",
+		"",
+		"end"
 	});
-	state.push(PState::PS_BLOCK);
-	ploop();
+	if      (tt_type == 1)  state.push(PState::PS_BLOCK), ploop();
+	else if (tt_type == 2)  ps_block();
 }
