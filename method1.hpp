@@ -236,7 +236,7 @@ void ploop() {
 	case PState::PS_EXPRESSION:
 	case PState::PS_VARPATH:
 		inp.expect("@identifier", r1);
-		outp.varpath(r1.at(0));
+		outp.varpath_push(r1.at(0));
 		state.pop();
 		break;
 

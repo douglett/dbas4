@@ -184,10 +184,6 @@ struct Output {
 	void string_literal(const string& literal) {
 		printf("	literal: [%s]\n", literal.c_str());
 	}
-	void varpath(const string& id) {
-		printf("	varpath: [%s]\n", id.c_str());
-	}
-
 	void struct_start(const string& id) {
 		printf("struct name: [%s]\n", id.c_str());
 	}
@@ -267,6 +263,25 @@ struct Output {
 	void let_end() {
 		printf("	let end\n");
 	}
+
+	void ex_start() {
+		printf("expression start\n");
+	}
+	void ex_push(const string& ex) {
+		printf("	%s\n", ex.c_str());
+	}
+	void ex_end() {
+		printf("	expression end\n");
+	}
+	void varpath_start(const string& id) {
+		printf("varpath: [%s]\n", id.c_str());
+	}
+	void varpath_push(const string& id) {
+		printf("	%s\n", id.c_str());
+	}
+	void varpath_end() {
+		printf("	varpath end\n");
+	}
 };
 
 
@@ -275,6 +290,7 @@ Output outp;
 
 #include "method1.hpp"
 #include "method2.hpp"
+#include "method2ex.hpp"
 #include "tests.hpp"
 
 int main() {

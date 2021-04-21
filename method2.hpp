@@ -15,22 +15,15 @@ void ps_string_literal() {
 
 void ps_varpath() {
 	inp.expect("@identifier", r1);
-	outp.varpath(r1.at(0));
+	outp.varpath_start(r1.at(0));
 	while (true)
-		if      (inp.get("'. @identifier", r1))  outp.varpath("."+r1.at(0));
-		else if (inp.get("'[")) {
-			outp.varpath("[");
-			ps_expression();
-			inp.expect("']");
-			outp.varpath("]");
-		}
-		else    break;
-}
-
-void ps_expression() {
-	// TODO
-	if    (inp.get("@integer", r1))  outp.varpath(r1.at(0));
-	else  ps_varpath();
+		if      (inp.get("'. @identifier", r1))
+			outp.varpath_push("."+r1.at(0));
+		else if (inp.get("'["))
+			outp.varpath_push("array_index"),  ps_expression(),  inp.expect("']");
+		else 
+			break;
+	outp.varpath_end();
 }
 
 void ps_segment(const string& type) {
