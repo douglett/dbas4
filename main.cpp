@@ -195,6 +195,6 @@ int main() {
 	// tt_struct2();
 	// tt_globals();
 	// tt_function();
-	// tt_block();
-	tt_variables();
+	tt_block();
+	// tt_variables();
 }

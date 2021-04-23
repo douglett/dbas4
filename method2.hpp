@@ -8,6 +8,14 @@ void ps_function();
 void ps_block();
 void ps_expression();
 
+
+
+// ----------------------------------------
+// Basic structure parsing
+// ----------------------------------------
+
+
+
 void ps_string_literal() {
 	inp.expect("@string_literal", r1);
 	outp.string_literal(r1.at(0));
@@ -89,8 +97,9 @@ void ps_printargs() {
 		if (inp.peek("endl"))  break;
 		if (!first)  inp.expect("',");
 		if      (inp.peek("'\""))         ps_string_literal();
-		else if (inp.peek("identifier"))  ps_varpath();
-		else    inp.expect("identifier");
+		// else if (inp.peek("identifier"))  ps_varpath();
+		// else    inp.expect("identifier");
+		else    ps_expression();
 		first = false;
 	}
 }
