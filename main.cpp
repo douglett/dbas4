@@ -98,6 +98,7 @@ struct Input {
 
 	// init functions
 	int open(const string& fname) {
+		close();
 		fs.open(fname, ios::in);
 		if (!fs.is_open())
 			return fprintf(stderr, "could not open file: %s\n", fname.c_str()), 0;
@@ -111,6 +112,7 @@ struct Input {
 		return 1;
 	}
 	int load(const vector<string>& lines) {
+		close();
 		for (int i = 0; i < lines.size(); i++)
 			if (i == 0) ss << lines[i];
 			else        ss << endl << lines[i];
@@ -195,6 +197,7 @@ int main() {
 	// tt_struct2();
 	// tt_globals();
 	// tt_function();
+	// tt_expression();
 	tt_block();
 	// tt_variables();
 }

@@ -50,6 +50,12 @@ void tt_function() {
 	if      (tt_type == 1)  state.push(PState::PS_FUNCTION), ploop();
 	else if (tt_type == 2)  ps_function();
 }
+void tt_expression() {
+	inp.load({
+		"5 + 3 * 2",
+	});
+	ps_expression();
+}
 void tt_block() {
 	inp.load({
 		"print \"hello world\", a, \"ass\"",
