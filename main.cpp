@@ -181,10 +181,13 @@ struct Input {
 
 
 #include "output.hpp"
+#include "outputb.hpp"
+#include "outputc.hpp"
 
 
 Input   inp;
 OutputB outp;
+// OutputC outp;
 
 #include "method1.hpp"
 #include "method2.hpp"
@@ -196,8 +199,9 @@ int main() {
 	// tt_struct();
 	// tt_struct2();
 	// tt_globals();
-	// tt_function();
+	tt_function();
 	// tt_expression();
-	tt_block();
+	// tt_block();
+	// tt_if();
 	// tt_variables();
 }

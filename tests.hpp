@@ -82,6 +82,19 @@ void tt_block() {
 	if      (tt_type == 1)  state.push(PState::PS_BLOCK), ploop();
 	else if (tt_type == 2)  ps_block();
 }
+void tt_if() {
+	inp.load({
+		"if a",
+		"	print \"hello world\", a",
+		"	let a = 100 * b",
+		"	if b",
+		"		let b[0] = 10",
+		"	end if",
+		"end if",
+		"",
+	});
+	ps_if();
+}
 void tt_variables() {
 	inp.load({
 		"foo.bar[10].foo"

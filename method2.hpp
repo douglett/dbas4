@@ -28,7 +28,8 @@ void ps_varpath() {
 		if      (inp.get("'. @identifier", r1))
 			outp.varpath_push("."+r1.at(0));
 		else if (inp.get("'["))
-			outp.varpath_push("array_index"),  ps_expression(),  inp.expect("']");
+			// outp.varpath_push("array_index"),  ps_expression(),  inp.expect("']");
+			ps_expression(),  inp.expect("']"), outp.varpath_push("getmem $2 $1");
 		else 
 			break;
 	outp.varpath_end();
@@ -101,6 +102,7 @@ void ps_printargs() {
 		// else    inp.expect("identifier");
 		else    ps_expression();
 		first = false;
+		outp.print_next();
 	}
 }
 
@@ -134,8 +136,10 @@ void ps_input() {
 void ps_if() {
 	inp.expect("'if");
 	outp.if_start();
+	outp.if_cond();
 	ps_expression();
 	inp.expect("endl");
+	outp.if_cond_end();
 	ps_block();
 	inp.expect("'end 'if endl");
 	outp.if_end();
@@ -220,19 +224,19 @@ void ps_block() {
 
 
 void pse_atom() {
-	if    (inp.get("@integer", r1))  outp.ex_push(r1.at(0));
+	if    (inp.get("@integer", r1))  outp.ex_push("i "+r1.at(0));
 	else  ps_varpath();
 }
 
 void pse_mul() {
 	pse_atom();
-	if      (inp.get("'*"))  pse_mul(),  outp.ex_push("*");
-	else if (inp.get("'/"))  pse_mul(),  outp.ex_push("/");
+	if      (inp.get("'*"))  pse_mul(),  outp.ex_push("mul");
+	else if (inp.get("'/"))  pse_mul(),  outp.ex_push("div");
 }
 void pse_add() {
 	pse_mul();
-	if      (inp.get("'+"))  pse_add(),  outp.ex_push("+");
-	else if (inp.get("'-"))  pse_add(),  outp.ex_push("-");
+	if      (inp.get("'+"))  pse_add(),  outp.ex_push("add");
+	else if (inp.get("'-"))  pse_add(),  outp.ex_push("sub");
 }
 void pse_compare() {
 	pse_add();
@@ -242,7 +246,7 @@ void pse_compare() {
 		) {
 		string op = r1.at(0);
 		pse_compare();
-		outp.ex_push(op);
+		outp.ex_push("cmp "+op);
 	}
 }
 
