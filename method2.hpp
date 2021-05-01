@@ -136,10 +136,10 @@ void ps_input() {
 void ps_if() {
 	inp.expect("'if");
 	outp.if_start();
-	outp.if_cond();
+	// outp.if_cond();
 	ps_expression();
 	inp.expect("endl");
-	outp.if_cond_end();
+	// outp.if_cond_end();
 	ps_block();
 	inp.expect("'end 'if endl");
 	outp.if_end();
@@ -198,6 +198,7 @@ void ps_let() {
 }
 
 void ps_block() {
+	outp.block_start();
 	while (true)
 		if      (inp.get ("endl"))     ;
 		else if (inp.peek("'end"))     break;
@@ -213,6 +214,7 @@ void ps_block() {
 		else if (inp.peek("'let"))     ps_let();
 		else    inp.expect("'end")     ;
 		// else    break;
+	outp.block_end();
 }
 
 

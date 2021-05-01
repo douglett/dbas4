@@ -85,6 +85,16 @@ void tt_block() {
 void tt_if() {
 	inp.load({
 		"if a",
+		"	let a = 100 * b",
+		"end if",
+		"",
+	});
+	ps_if();
+	outp.show();
+}
+void tt_if2() {
+	inp.load({
+		"if a",
 		"	print \"hello world\", a",
 		"	let a = 100 * b",
 		"	if b",

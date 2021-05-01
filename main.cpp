@@ -199,9 +199,10 @@ int main() {
 	// tt_struct();
 	// tt_struct2();
 	// tt_globals();
-	tt_function();
+	// tt_function();
 	// tt_expression();
 	// tt_block();
-	// tt_if();
+	tt_if();
+	// tt_if2();
 	// tt_variables();
 }
