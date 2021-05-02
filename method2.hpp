@@ -25,13 +25,9 @@ void ps_varpath() {
 	inp.expect("@identifier", r1);
 	outp.varpath_start(r1.at(0));
 	while (true)
-		if      (inp.get("'. @identifier", r1))
-			outp.varpath_push("."+r1.at(0));
-		else if (inp.get("'["))
-			// outp.varpath_push("array_index"),  ps_expression(),  inp.expect("']");
-			ps_expression(),  inp.expect("']"), outp.varpath_push("getmem $2 $1");
-		else 
-			break;
+		if      (inp.get("'. @identifier", r1))  outp.varpath_push("."+r1.at(0));
+		else if (inp.get("'["))  ps_expression(),  inp.expect("']"), outp.varpath_push("getmem $2 $1");
+		else    break;
 	outp.varpath_end();
 }
 

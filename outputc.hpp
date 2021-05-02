@@ -48,10 +48,10 @@ struct OutputC : Output {
 		state.push_back({ "if", ++count, 1 });
 		statelabel();
 	}
-	void if_cond() {
-		const auto& st = state.back();
-		oprint("ifn if_" + to_string(st.count) + "_" + to_string(st.x+1));
-	}
+	// void if_cond() {
+	// 	const auto& st = state.back();
+	// 	oprint("ifn if_" + to_string(st.count) + "_" + to_string(st.x+1));
+	// }
 	void if_end() {
 		state.back().x++;
 		statelabel();

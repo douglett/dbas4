@@ -90,7 +90,6 @@ void tt_if() {
 		"",
 	});
 	ps_if();
-	outp.show();
 }
 void tt_if2() {
 	inp.load({

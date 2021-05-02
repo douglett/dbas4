@@ -26,26 +26,30 @@ struct wb_stmt_block {
 	vector<string> stmts;
 };
 struct wb_stmt_print {
-	vector<string> literals;
+	vector<string> list;
 };
 struct wb_stmt_input {
 	string prompt;
+	int varpath;
 };
 struct wb_stmt_if {
-	vector<uint32_t> conds;
-	vector<uint32_t> blocks;
+	vector<int> conds;
+	vector<int> blocks;
 };
 struct wb_stmt_while {
+	int cond, block;
 };
 struct wb_stmt_return {
+	int expression;
 };
 struct wb_stmt_call {
 	string id;
 };
 struct wb_stmt_set {
+	int varpath1, varpath2;
 };
 struct wb_stmt_let {
-	uint32_t varpath, expression;
+	int varpath, expression;
 };
 struct wb_varpath {
 	vector<string> list;
@@ -94,12 +98,9 @@ struct OutputB : Output {
 	};
 	vector<pstate>           state;
 
-	vector<wb_expression>    expressions;
-	vector<wb_varpath>       varpaths;
 	vector<wb_struct>        structs;
 	vector<wb_dim>           dims;
 	vector<wb_function>      funcs;
-	vector<wb_stmt_block>    blocks;
 	vector<wb_stmt_print>    prints;
 	vector<wb_stmt_input>    inputs;
 	vector<wb_stmt_if>       ifs;
@@ -108,6 +109,9 @@ struct OutputB : Output {
 	vector<wb_stmt_call>     calls;
 	vector<wb_stmt_set>      sets;
 	vector<wb_stmt_let>      lets;
+	vector<wb_stmt_block>    blocks;
+	vector<wb_varpath>       varpaths;
+	vector<wb_expression>    expressions = { {{"i 0"}}, {{"i 1"}} };
 
 
 	PSTATE_T curstate() { return state.size() ? state.back().pstate : PS_NONE; }
@@ -120,7 +124,7 @@ struct OutputB : Output {
 	}
 	void struct_end() {
 		state.pop_back();
-		printf("structs count: %d\n", structs.size());
+		// printf("structs count: %d\n", structs.size());
 	}
 	void dim_short(const string& type, const string& id, bool isarray) {
 		if      (curstate() == PS_STRUCT)    structs.at(curid()).members.push_back({ type, id, isarray });
@@ -178,10 +182,6 @@ struct OutputB : Output {
 		else  printf("%d ", curstate()),  Output::if_start();
 		state.push_back({ PS_STMT_IF, ifs.size()-1 });
 	}
-	void if_cond() {
-	}
-	void if_cond_end() {
-	}
 	void if_end() {
 		state.pop_back();
 	}
@@ -216,7 +216,7 @@ struct OutputB : Output {
 	void let_start() {
 		lets.push_back({});
 		if    (curstate() == PS_STMT_BLOCK)  blocks.at(curid()).stmts.push_back("let "+to_string(lets.size()-1));
-		// else  printf("%d ", curstate()),  Output::let_start();
+		else  printf("%d ", curstate()),  Output::let_start();
 		state.push_back({ PS_STMT_LET, lets.size()-1 });
 	}
 	void let_end() {
@@ -225,15 +225,16 @@ struct OutputB : Output {
 
 
 	void string_literal(const string& literal) {
-		if      (curstate() == PS_STMT_PRINT)   prints.at(curid()).literals.push_back({ literal });
+		if      (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back("string_literal " + literal);
 		else if (curstate() == PS_STMT_INPUT)   inputs.at(curid()).prompt = literal;
 		else    printf("%d  ", curstate()),  Output::string_literal(literal);
 	}
 	void ex_start() {
 		expressions.push_back({});
-		if      (curstate() == PS_STMT_IF)  ifs.at(curid()).conds.push_back(expressions.size()-1);
-		// else if (curstate() == PS_VARPATH)
-		else if (curstate() == PS_STMT_LET)  lets.at(curid()).expression = expressions.size()-1;
+		if      (curstate() == PS_STMT_IF)     ifs.at(curid()).conds.push_back(expressions.size()-1);
+		else if (curstate() == PS_VARPATH)     varpaths.at(curid()).list.push_back("expression "+to_string(expressions.size()-1));
+		else if (curstate() == PS_STMT_LET)    lets.at(curid()).expression = expressions.size()-1;
+		else if (curstate() == PS_STMT_PRINT)  prints.at(curid()).list.push_back("expression "+to_string(expressions.size()-1));
 		else    printf("%d  ", curstate()),  Output::ex_start();
 		state.push_back({ PS_EXPRESSION, expressions.size()-1 });
 	}
@@ -259,6 +260,25 @@ struct OutputB : Output {
 
 
 	void show() {
+		// structs
+		printf(":structs:      $%d\n", structs.size());
+		for (int i = 0; i < structs.size(); i++) {
+			printf("  %s\n", structs[i].id.c_str());
+			for (const auto& d : structs[i].members)
+				printf("\t%s %s %s\n", d.type.c_str(), d.id.c_str(), (d.isarray ? "[]" : ""));
+		}
+		printf(":dims:         $%d\n", dims.size());
+		for (int i = 0; i < dims.size(); i++) {
+			printf("  $%d  %s %s %s\n", i, dims[i].type.c_str(), dims[i].id.c_str(), (dims[i].isarray ? "[]" : ""));
+		}
+		printf(":funcs:        $%d\n", funcs.size());
+		for (int i = 0; i < funcs.size(); i++) {
+			printf("  %s\n", funcs[i].id.c_str());
+			for (const auto& d : funcs[i].args)
+				printf("\t%s %s %s\n", d.type.c_str(), d.id.c_str(), (d.isarray ? "[]" : ""));
+		}
+
+
 		// ifs
 		printf(":ifs:          $%d\n", ifs.size());
 		for (int i = 0; i < ifs.size(); i++) {
@@ -268,6 +288,15 @@ struct OutputB : Output {
 			for (const auto& b : ifs[i].blocks)
 				printf("\tblock  $%d\n", b);
 		}
+		// prints
+		printf(":prints:       $%d\n", prints.size());
+		for (int i = 0; i < prints.size(); i++) {
+			printf("  $%d\n", i);
+			for (const auto& s : prints[i].list)
+				printf("\t%s\n", s.c_str());
+		}
+
+
 		// blocks
 		printf(":blocks:       $%d\n", blocks.size());
 		for (int i = 0; i < blocks.size(); i++) {
@@ -293,10 +322,6 @@ struct OutputB : Output {
 		}
 
 
-		printf(":structs:      $%d\n", structs.size());
-		printf(":dims:         $%d\n", dims.size());
-		printf(":funcs:        $%d\n", funcs.size());
-		printf(":prints:       $%d\n", prints.size());
 		printf(":inputs:       $%d\n", inputs.size());
 		printf(":whiles:       $%d\n", whiles.size());
 		printf(":returns:      $%d\n", returns.size());

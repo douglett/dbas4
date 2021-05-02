@@ -202,7 +202,9 @@ int main() {
 	// tt_function();
 	// tt_expression();
 	// tt_block();
-	tt_if();
+	// tt_if();
 	// tt_if2();
-	// tt_variables();
+	tt_variables();
+
+	outp.show();
 }
