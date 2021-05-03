@@ -52,8 +52,8 @@ struct wb_stmt_input {
 	int varpath;
 };
 struct wb_stmt_if {
-	vector<int> conds;
-	vector<int> blocks;
+	struct ifthen { int cond; int block; };
+	vector<ifthen> ifthens;
 };
 struct wb_stmt_while {
 	int cond, block;
@@ -142,7 +142,7 @@ struct OutputB : Output {
 	void block_start() {
 		blocks.push_back({});
 		int idx = blocks.size() - 1;
-		if      (curstate() == PS_STMT_IF)     ifs.at(curid()).blocks.push_back(idx);
+		if      (curstate() == PS_STMT_IF)     ifs.at(curid()).ifthens.back().block = idx;
 		else if (curstate() == PS_STMT_WHILE)  whiles.at(curid()).block = idx;
 		else    printf("%d  ", curstate()),  Output::block_start();
 		state.push_back({ PS_STMT_BLOCK, idx });
@@ -170,7 +170,7 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void if_start() {
-		ifs.push_back({});
+		ifs.push_back({ {{ -1, -1 }} });
 		_block_append_stmt("if", ifs.size()-1);
 		state.push_back({ PS_STMT_IF, int(ifs.size()-1) });
 	}
@@ -227,7 +227,7 @@ struct OutputB : Output {
 	void ex_start() {
 		expressions.push_back({});
 		int idx = expressions.size() - 1;
-		if      (curstate() == PS_STMT_IF)      ifs.at(curid()).conds.push_back(idx);
+		if      (curstate() == PS_STMT_IF)      ifs.at(curid()).ifthens.back().cond = idx;
 		else if (curstate() == PS_STMT_WHILE)   whiles.at(curid()).cond = idx;
 		else if (curstate() == PS_STMT_RETURN)  returns.at(curid()).expression = idx;
 		else if (curstate() == PS_STMT_LET)     lets.at(curid()).expression = idx;
@@ -284,15 +284,6 @@ struct OutputB : Output {
 		}
 
 
-		// ifs
-		printf(":ifs:          $%d\n", ifs.size());
-		for (int i = 0; i < ifs.size(); i++) {
-			printf("  $%d\n", i);
-			for (const auto& c : ifs[i].conds)
-				printf("\tcond   $%d\n", c);
-			for (const auto& b : ifs[i].blocks)
-				printf("\tblock  $%d\n", b);
-		}
 		// prints
 		printf(":prints:       $%d\n", prints.size());
 		for (int i = 0; i < prints.size(); i++) {
@@ -300,6 +291,20 @@ struct OutputB : Output {
 			for (const auto& s : prints[i].list)
 				printf("\t%s\n", s.c_str());
 		}
+		printf(":inputs:       $%d\n", inputs.size());
+		// ifs
+		printf(":ifs:          $%d\n", ifs.size());
+		for (int i = 0; i < ifs.size(); i++) {
+			printf("  $%d  ", i);
+			for (const auto& it : ifs[i].ifthens)
+				printf("(cond $%d, block $%d)  ", it.cond, it.block);
+			printf("\n");
+		}
+		printf(":whiles:       $%d\n", whiles.size());
+		printf(":returns:      $%d\n", returns.size());
+		printf(":calls:        $%d\n", calls.size());
+		printf(":lets:         $%d\n", lets.size());
+		printf(":sets:         $%d\n", sets.size());
 
 
 		// blocks
@@ -325,12 +330,5 @@ struct OutputB : Output {
 				printf("%s  ", l.c_str());
 			printf("\n");
 		}
-
-
-		printf(":inputs:       $%d\n", inputs.size());
-		printf(":whiles:       $%d\n", whiles.size());
-		printf(":returns:      $%d\n", returns.size());
-		printf(":calls:        $%d\n", calls.size());
-		printf(":sets:         $%d\n", sets.size());
 	}
 };
