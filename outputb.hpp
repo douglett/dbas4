@@ -6,6 +6,25 @@
 // ----------------------------------------
 
 
+enum PSTATE_T {
+	PS_NONE = 0,
+	PS_EXPRESSION,
+	PS_VARPATH,
+	PS_STRUCT,
+	PS_DIM,
+	PS_FUNCTION,
+	PS_STMT_BLOCK,
+	PS_STMT_PRINT,
+	PS_STMT_INPUT,
+	PS_STMT_IF,
+	PS_STMT_WHILE,
+	PS_STMT_RETURN,
+	PS_STMT_CALL,
+	PS_STMT_SET,
+	PS_STMT_LET,
+};
+
+
 struct wb_dim {
 	string type, id;
 	bool isarray;
@@ -44,6 +63,7 @@ struct wb_stmt_return {
 };
 struct wb_stmt_call {
 	string id;
+	vector<int> args;
 };
 struct wb_stmt_set {
 	int varpath1, varpath2;
@@ -61,40 +81,9 @@ struct wb_expression {
 
 
 struct OutputB : Output {
-	enum PSTATE_T {
-		PS_NONE = 0,
-		PS_EXPRESSION,
-		PS_VARPATH,
-		// PS_STRUCT_BLOCK,
-		// PS_GLOBAL_BLOCK,
-		// PS_FUNCTION_BLOCK,
-		PS_STRUCT,
-		PS_DIM,
-		// PS_DIM_SHORT,
-		PS_FUNCTION,
-		// PS_FUNCTION_ARGS,
-		// PS_FUNCTION_END,
-		// PS_BLOCK,
-		PS_STMT_BLOCK,
-		PS_STMT_PRINT,
-		// PS_STMT_PRINT_ARGS,
-		PS_STMT_INPUT,
-		PS_STMT_IF,
-		// PS_STMT_IF2,
-		// PS_STMT_IF_END,
-		PS_STMT_WHILE,
-		// PS_STMT_WHILE2,
-		// PS_STMT_WHILE_END,
-		PS_STMT_RETURN,
-		// PS_STMT_RETURN_END,
-		// PS_STRING_LITERAL,
-		PS_STMT_CALL,
-		PS_STMT_SET,
-		PS_STMT_LET,
-	};
 	struct pstate {
 		PSTATE_T pstate;
-		uint32_t id;
+		int id;
 	};
 	vector<pstate>           state;
 
@@ -111,7 +100,8 @@ struct OutputB : Output {
 	vector<wb_stmt_let>      lets;
 	vector<wb_stmt_block>    blocks;
 	vector<wb_varpath>       varpaths;
-	vector<wb_expression>    expressions = { {{"i 0"}}, {{"i 1"}} };
+	// vector<wb_expression>    expressions = { {{"i 0"}}, {{"i 1"}} };
+	vector<wb_expression>    expressions;
 
 
 	PSTATE_T curstate() { return state.size() ? state.back().pstate : PS_NONE; }
@@ -120,11 +110,10 @@ struct OutputB : Output {
 
 	void struct_start(const string& id) {
 		structs.push_back({ id });
-		state.push_back({ PS_STRUCT, structs.size()-1 });
+		state.push_back({ PS_STRUCT, int(structs.size()-1) });
 	}
 	void struct_end() {
 		state.pop_back();
-		// printf("structs count: %d\n", structs.size());
 	}
 	void dim_short(const string& type, const string& id, bool isarray) {
 		if      (curstate() == PS_STRUCT)    structs.at(curid()).members.push_back({ type, id, isarray });
@@ -133,7 +122,7 @@ struct OutputB : Output {
 	}
 	void dim_start(const string& type, const string& id) {
 		dims.push_back({ type, id });
-		state.push_back({ PS_DIM, dims.size()-1 });
+		state.push_back({ PS_DIM, int(dims.size()-1) });
 	}
 	void dim_isarray(bool val) {
 		dims.at(curid()).isarray = val;
@@ -143,7 +132,7 @@ struct OutputB : Output {
 	}
 	void func_start(const string& id) {
 		funcs.push_back({ id });
-		state.push_back({ PS_FUNCTION, funcs.size()-1 });
+		state.push_back({ PS_FUNCTION, int(funcs.size()-1) });
 	}
 	void func_end() {
 		state.pop_back();
@@ -152,72 +141,78 @@ struct OutputB : Output {
 
 	void block_start() {
 		blocks.push_back({});
-		if    (curstate() == PS_STMT_IF)  ifs.at(curid()).blocks.push_back(blocks.size()-1);
-		else  printf("%d \n", curstate());
-		state.push_back({ PS_STMT_BLOCK, blocks.size()-1 });
+		int idx = blocks.size() - 1;
+		if      (curstate() == PS_STMT_IF)     ifs.at(curid()).blocks.push_back(idx);
+		else if (curstate() == PS_STMT_WHILE)  whiles.at(curid()).block = idx;
+		else    printf("%d  ", curstate()),  Output::block_start();
+		state.push_back({ PS_STMT_BLOCK, idx });
+	}
+	void _block_append_stmt(const string& type, int id) {
+		if    (curstate() == PS_STMT_BLOCK)  blocks.at(curid()).stmts.push_back(type + " " + to_string(id));
+		else  printf("  %d  (%s $%d to block)\n", curstate(), type.c_str(), id);
 	}
 	void block_end() {
 		state.pop_back();
 	}	
 	void print_start() {
 		prints.push_back({});
-		state.push_back({ PS_STMT_PRINT, prints.size()-1 });
-	}
-	void print_next() {
+		state.push_back({ PS_STMT_PRINT, int(prints.size()-1) });
 	}
 	void print_end() {
 		state.pop_back();
 	}
 	void input_start() {
 		inputs.push_back({ "> " });
-		state.push_back({ PS_STMT_INPUT, inputs.size()-1 });
+		_block_append_stmt("input", inputs.size()-1);
+		state.push_back({ PS_STMT_INPUT, int(inputs.size()-1) });
 	}
 	void input_end() {
 		state.pop_back();
 	}
 	void if_start() {
 		ifs.push_back({});
-		// printf("if: %d\n", curstate());
-		if    (curstate() == PS_STMT_BLOCK)  blocks.at(curid()).stmts.push_back("if "+to_string(ifs.size()-1));
-		else  printf("%d ", curstate()),  Output::if_start();
-		state.push_back({ PS_STMT_IF, ifs.size()-1 });
+		_block_append_stmt("if", ifs.size()-1);
+		state.push_back({ PS_STMT_IF, int(ifs.size()-1) });
 	}
 	void if_end() {
 		state.pop_back();
 	}
 	void while_start() {
 		whiles.push_back({});
-		state.push_back({ PS_STMT_WHILE, whiles.size()-1 });
+		_block_append_stmt("while", whiles.size()-1);
+		state.push_back({ PS_STMT_WHILE, int(whiles.size()-1) });
 	}
 	void while_end() {
 		state.pop_back();
 	}
 	void return_start() {
 		returns.push_back({});
-		state.push_back({ PS_STMT_RETURN, returns.size()-1 });
+		_block_append_stmt("return", returns.size()-1);
+		state.push_back({ PS_STMT_RETURN, int(returns.size()-1) });
 	}
 	void return_end() {
 		state.pop_back();
 	}
 	void call_start(const string& id) {
 		calls.push_back({ id });
-		state.push_back({ PS_STMT_CALL, calls.size()-1 });
+		_block_append_stmt("call", calls.size()-1);
+		state.push_back({ PS_STMT_CALL, int(calls.size()-1) });
 	}
 	void call_end() {
 		state.pop_back();
 	}
 	void set_start() {
-		sets.push_back({});
-		state.push_back({ PS_STMT_SET, sets.size()-1 });
+		sets.push_back({ -1, -1 });
+		_block_append_stmt("set", sets.size()-1);
+		state.push_back({ PS_STMT_SET, int(sets.size()-1) });
 	}
 	void set_end() {
 		state.pop_back();
 	}
 	void let_start() {
 		lets.push_back({});
-		if    (curstate() == PS_STMT_BLOCK)  blocks.at(curid()).stmts.push_back("let "+to_string(lets.size()-1));
-		else  printf("%d ", curstate()),  Output::let_start();
-		state.push_back({ PS_STMT_LET, lets.size()-1 });
+		_block_append_stmt("let", lets.size()-1);
+		state.push_back({ PS_STMT_LET, int(lets.size()-1) });
 	}
 	void let_end() {
 		state.pop_back();
@@ -231,12 +226,16 @@ struct OutputB : Output {
 	}
 	void ex_start() {
 		expressions.push_back({});
-		if      (curstate() == PS_STMT_IF)     ifs.at(curid()).conds.push_back(expressions.size()-1);
-		else if (curstate() == PS_VARPATH)     varpaths.at(curid()).list.push_back("expression "+to_string(expressions.size()-1));
-		else if (curstate() == PS_STMT_LET)    lets.at(curid()).expression = expressions.size()-1;
-		else if (curstate() == PS_STMT_PRINT)  prints.at(curid()).list.push_back("expression "+to_string(expressions.size()-1));
+		int idx = expressions.size() - 1;
+		if      (curstate() == PS_STMT_IF)      ifs.at(curid()).conds.push_back(idx);
+		else if (curstate() == PS_STMT_WHILE)   whiles.at(curid()).cond = idx;
+		else if (curstate() == PS_STMT_RETURN)  returns.at(curid()).expression = idx;
+		else if (curstate() == PS_STMT_LET)     lets.at(curid()).expression = idx;
+		else if (curstate() == PS_STMT_CALL)    calls.at(curid()).args.push_back(idx);
+		else if (curstate() == PS_VARPATH)      varpaths.at(curid()).list.push_back("expression "+to_string(idx));
+		else if (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back("expression "+to_string(idx));
 		else    printf("%d  ", curstate()),  Output::ex_start();
-		state.push_back({ PS_EXPRESSION, expressions.size()-1 });
+		state.push_back({ PS_EXPRESSION, idx });
 	}
 	void ex_push(const string& ex) {
 		expressions.at(curid()).list.push_back(ex);
@@ -246,10 +245,16 @@ struct OutputB : Output {
 	}
 	void varpath_start(const string& id) {
 		varpaths.push_back({ {id} });
-		if      (curstate() == PS_EXPRESSION)   expressions.at(curid()).list.push_back("varpath "+to_string(varpaths.size()-1));
-		else if (curstate() == PS_STMT_LET)   lets.at(curid()).varpath = curid();
+		int idx = varpaths.size() - 1;
+		if      (curstate() == PS_EXPRESSION)   expressions.at(curid()).list.push_back("varpath "+to_string(idx));
+		else if (curstate() == PS_STMT_LET)     lets.at(curid()).varpath = idx;
+		else if (curstate() == PS_STMT_INPUT)   inputs.at(curid()).varpath = idx;
+		else if (curstate() == PS_STMT_SET) {
+			if      (sets.at(curid()).varpath1 == -1) sets.at(curid()).varpath1 = idx;
+			else if (sets.at(curid()).varpath2 == -1) sets.at(curid()).varpath2 = idx;
+		}
 		else    printf("%d  ", curstate()),  Output::varpath_start(id);
-		state.push_back({ PS_VARPATH, varpaths.size()-1 });
+		state.push_back({ PS_VARPATH, idx });
 	}
 	void varpath_push(const string& path) {
 		varpaths.at(curid()).list.push_back(path);

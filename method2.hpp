@@ -98,7 +98,7 @@ void ps_printargs() {
 		// else    inp.expect("identifier");
 		else    ps_expression();
 		first = false;
-		outp.print_next();
+		// outp.print_next();
 	}
 }
 

@@ -56,32 +56,6 @@ void tt_expression() {
 	});
 	ps_expression();
 }
-void tt_block() {
-	inp.load({
-		"print \"hello world\", a, \"ass\"",
-		"input a",
-		"input \"ass\", a",
-		"",
-		"if a",
-		"end if",
-		"",
-		"while a",
-		"end while",
-		"",
-		"return",
-		"return 10",
-		"",
-		"call a()",
-		"call b(a, 10)",
-		"set a = b",
-		"let a = 10",
-		"let a = 10",
-		"",
-		"end"
-	});
-	if      (tt_type == 1)  state.push(PState::PS_BLOCK), ploop();
-	else if (tt_type == 2)  ps_block();
-}
 void tt_if() {
 	inp.load({
 		"if a",
@@ -109,4 +83,32 @@ void tt_variables() {
 		"foo.bar[10].foo"
 	});
 	ps_varpath();
+}
+
+void tt_block_large() {
+	inp.load({
+		"print \"hello world\", a, \"ass\"",
+		"input a",
+		"input \"ass\", a",
+		"",
+		"if a",
+		"end if",
+		"",
+		"while a",
+		"end while",
+		"",
+		"return",
+		"return 10",
+		"",
+		"call a()",
+		"call b(a, 10)",
+		"",
+		"set a = b",
+		"let a = 10",
+		"let a = 10",
+		"",
+		"end"
+	});
+	if      (tt_type == 1)  state.push(PState::PS_BLOCK), ploop();
+	else if (tt_type == 2)  ps_block();
 }

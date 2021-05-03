@@ -35,26 +35,32 @@ struct Output {
 	}
 
 
+	void block_start() {
+		printf("block start\n");
+	}
+	void block_end() {
+		printf("	block end\n");
+	}	
 	void print_start() {
-		printf("print start:\n");
+		printf("print start\n");
 	}
 	void print_end() {
 		printf("	print end\n");
 	}
 	void input_start() {
-		printf("input start:\n");
+		printf("input start\n");
 	}
 	void input_end() {
 		printf("	input end\n");
 	}
 	void if_start() {
-		printf("if start:\n");
+		printf("if start\n");
 	}
 	void if_end() {
 		printf("	if end\n");
 	}
 	void while_start() {
-		printf("while start:\n");
+		printf("while start\n");
 	}
 	void while_end() {
 		printf("	while end\n");
