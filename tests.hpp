@@ -89,7 +89,7 @@ void tt_block_large() {
 	inp.load({
 		"print \"hello world\", a, \"ass\"",
 		"input a",
-		"input \"ass\", a",
+		"input \"assy \", a",
 		"",
 		"if a",
 		"end if",

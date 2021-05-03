@@ -220,7 +220,7 @@ struct OutputB : Output {
 
 
 	void string_literal(const string& literal) {
-		if      (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back("string_literal " + literal);
+		if      (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back("lit  \"" + literal + "\"");
 		else if (curstate() == PS_STMT_INPUT)   inputs.at(curid()).prompt = literal;
 		else    printf("%d  ", curstate()),  Output::string_literal(literal);
 	}
@@ -232,8 +232,8 @@ struct OutputB : Output {
 		else if (curstate() == PS_STMT_RETURN)  returns.at(curid()).expression = idx;
 		else if (curstate() == PS_STMT_LET)     lets.at(curid()).expression = idx;
 		else if (curstate() == PS_STMT_CALL)    calls.at(curid()).args.push_back(idx);
-		else if (curstate() == PS_VARPATH)      varpaths.at(curid()).list.push_back("expression "+to_string(idx));
-		else if (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back("expression "+to_string(idx));
+		else if (curstate() == PS_VARPATH)      varpaths.at(curid()).list.push_back("expr $" + to_string(idx));
+		else if (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back("expr $" + to_string(idx));
 		else    printf("%d  ", curstate()),  Output::ex_start();
 		state.push_back({ PS_EXPRESSION, idx });
 	}
@@ -291,7 +291,11 @@ struct OutputB : Output {
 			for (const auto& s : prints[i].list)
 				printf("\t%s\n", s.c_str());
 		}
+		// inputs
 		printf(":inputs:       $%d\n", inputs.size());
+		for (int i = 0; i < inputs.size(); i++) {
+			printf("  $%d  varpath $%d, prompt \"%s\"\n", i, inputs[i].varpath, inputs[i].prompt.c_str());
+		}
 		// ifs
 		printf(":ifs:          $%d\n", ifs.size());
 		for (int i = 0; i < ifs.size(); i++) {
@@ -300,11 +304,34 @@ struct OutputB : Output {
 				printf("(cond $%d, block $%d)  ", it.cond, it.block);
 			printf("\n");
 		}
+		// whiles
 		printf(":whiles:       $%d\n", whiles.size());
+		for (int i = 0; i < whiles.size(); i++) {
+			printf("  $%d  cond $%d, block $%d\n", i, whiles[i].cond, whiles[i].block);
+		}
+		// returns
 		printf(":returns:      $%d\n", returns.size());
+		for (int i = 0; i < returns.size(); i++) {
+			printf("  $%d  expr $%d\n", i, returns[i].expression);
+		}
+		// calls
 		printf(":calls:        $%d\n", calls.size());
-		printf(":lets:         $%d\n", lets.size());
+		for (int i = 0; i < calls.size(); i++) {
+			printf("  $%d  id  ( ", i);
+			for (const auto& a : calls[i].args)
+				printf("$%d, ", a);
+			printf(" )\n");
+		}
+		// sets
 		printf(":sets:         $%d\n", sets.size());
+		for (int i = 0; i < sets.size(); i++) {
+			printf("  $%d  varpath_dest $%d, varpath_source $%d\n", i, sets[i].varpath1, sets[i].varpath2);
+		}
+		// lets
+		printf(":lets:         $%d\n", lets.size());
+		for (int i = 0; i < lets.size(); i++) {
+			printf("  $%d  varpath $%d, expr $%d\n", i, lets[i].varpath, lets[i].expression);
+		}
 
 
 		// blocks
