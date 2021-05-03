@@ -42,13 +42,15 @@ struct wb_function {
 	vector<wb_dimshort> args;
 };
 struct wb_stmt_block {
-	vector<string> stmts;
+	struct stmt { string type; int id; };
+	vector<stmt> stmts;
 };
 struct wb_stmt_print {
-	vector<string> list;
+	struct arg { string type; int id; };
+	vector<arg> list;
 };
 struct wb_stmt_input {
-	string prompt;
+	int prompt;
 	int varpath;
 };
 struct wb_stmt_if {
@@ -66,7 +68,7 @@ struct wb_stmt_call {
 	vector<int> args;
 };
 struct wb_stmt_set {
-	int varpath1, varpath2;
+	int varpath_dest, varpath_source;
 };
 struct wb_stmt_let {
 	int varpath, expression;
@@ -102,10 +104,12 @@ struct OutputB : Output {
 	vector<wb_varpath>       varpaths;
 	// vector<wb_expression>    expressions = { {{"i 0"}}, {{"i 1"}} };
 	vector<wb_expression>    expressions;
+	vector<string>           literals;
 
 
-	PSTATE_T curstate() { return state.size() ? state.back().pstate : PS_NONE; }
-	int      curid()    { return state.size() ? state.back().id     : -1; }
+	PSTATE_T curstate()  { return state.size() ? state.back().pstate : PS_NONE; }
+	int      curid()     { return state.size() ? state.back().id     : -1; }
+	void     statewarn() { printf("<statewarn %d>   ", curstate()); }
 
 
 	void struct_start(const string& id) {
@@ -118,7 +122,7 @@ struct OutputB : Output {
 	void dim_short(const string& type, const string& id, bool isarray) {
 		if      (curstate() == PS_STRUCT)    structs.at(curid()).members.push_back({ type, id, isarray });
 		else if (curstate() == PS_FUNCTION)  funcs.at(curid()).args.push_back({ type, id, isarray });
-		else    Output::dim_short(type, id, isarray);
+		else    statewarn(),  Output::dim_short(type, id, isarray);
 	}
 	void dim_start(const string& type, const string& id) {
 		dims.push_back({ type, id });
@@ -144,12 +148,13 @@ struct OutputB : Output {
 		int idx = blocks.size() - 1;
 		if      (curstate() == PS_STMT_IF)     ifs.at(curid()).ifthens.back().block = idx;
 		else if (curstate() == PS_STMT_WHILE)  whiles.at(curid()).block = idx;
-		else    printf("%d  ", curstate()),  Output::block_start();
+		else    statewarn(),  Output::block_start();
 		state.push_back({ PS_STMT_BLOCK, idx });
 	}
 	void _block_append_stmt(const string& type, int id) {
-		if    (curstate() == PS_STMT_BLOCK)  blocks.at(curid()).stmts.push_back(type + " " + to_string(id));
-		else  printf("  %d  (%s $%d to block)\n", curstate(), type.c_str(), id);
+		// helper - append statement to block.
+		if    (curstate() == PS_STMT_BLOCK)  blocks.at(curid()).stmts.push_back({ type, id });
+		else  statewarn(),  printf("(%s append)\n", type.c_str());
 	}
 	void block_end() {
 		state.pop_back();
@@ -162,7 +167,8 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void input_start() {
-		inputs.push_back({ "> " });
+		int prompt = _string_getindex("> ");
+		inputs.push_back({ prompt, -1 });
 		_block_append_stmt("input", inputs.size()-1);
 		state.push_back({ PS_STMT_INPUT, int(inputs.size()-1) });
 	}
@@ -219,10 +225,18 @@ struct OutputB : Output {
 	}
 
 
-	void string_literal(const string& literal) {
-		if      (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back("lit  \"" + literal + "\"");
-		else if (curstate() == PS_STMT_INPUT)   inputs.at(curid()).prompt = literal;
-		else    printf("%d  ", curstate()),  Output::string_literal(literal);
+	void string_literal(const string& lit) {
+		int idx = _string_getindex(lit);
+		if      (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back({ "lit", idx });
+		else if (curstate() == PS_STMT_INPUT)   inputs.at(curid()).prompt = idx;
+		else    statewarn(),  Output::string_literal(lit);
+	}
+	int _string_getindex(const string& lit) {
+		// helper - de-dup literals
+		for (int i = 0; i < literals.size(); i++)
+			if (literals[i] == lit)  return i;
+		literals.push_back(lit);
+		return literals.size() - 1;
 	}
 	void ex_start() {
 		expressions.push_back({});
@@ -233,8 +247,8 @@ struct OutputB : Output {
 		else if (curstate() == PS_STMT_LET)     lets.at(curid()).expression = idx;
 		else if (curstate() == PS_STMT_CALL)    calls.at(curid()).args.push_back(idx);
 		else if (curstate() == PS_VARPATH)      varpaths.at(curid()).list.push_back("expr $" + to_string(idx));
-		else if (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back("expr $" + to_string(idx));
-		else    printf("%d  ", curstate()),  Output::ex_start();
+		else if (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back({ "expr", idx });
+		else    statewarn(),  Output::ex_start();
 		state.push_back({ PS_EXPRESSION, idx });
 	}
 	void ex_push(const string& ex) {
@@ -250,10 +264,10 @@ struct OutputB : Output {
 		else if (curstate() == PS_STMT_LET)     lets.at(curid()).varpath = idx;
 		else if (curstate() == PS_STMT_INPUT)   inputs.at(curid()).varpath = idx;
 		else if (curstate() == PS_STMT_SET) {
-			if      (sets.at(curid()).varpath1 == -1) sets.at(curid()).varpath1 = idx;
-			else if (sets.at(curid()).varpath2 == -1) sets.at(curid()).varpath2 = idx;
+			if      (sets.at(curid()).varpath_dest == -1) sets.at(curid()).varpath_dest = idx;
+			else if (sets.at(curid()).varpath_source == -1) sets.at(curid()).varpath_source = idx;
 		}
-		else    printf("%d  ", curstate()),  Output::varpath_start(id);
+		else    statewarn(),  Output::varpath_start(id);
 		state.push_back({ PS_VARPATH, idx });
 	}
 	void varpath_push(const string& path) {
@@ -265,7 +279,7 @@ struct OutputB : Output {
 
 
 	void show() {
-		// structs
+		// program control data
 		printf(":structs:      $%d\n", structs.size());
 		for (int i = 0; i < structs.size(); i++) {
 			printf("  %s\n", structs[i].id.c_str());
@@ -284,78 +298,86 @@ struct OutputB : Output {
 		}
 
 
-		// prints
+		// statements
 		printf(":prints:       $%d\n", prints.size());
 		for (int i = 0; i < prints.size(); i++) {
+			// printf("  $%d  ", i);
+			// for (const auto& st : prints[i].list)
+			// 	printf("%s $%d, ", st.type.c_str(), st.id);
+			// printf("\n");
 			printf("  $%d\n", i);
-			for (const auto& s : prints[i].list)
-				printf("\t%s\n", s.c_str());
+			for (const auto& st : prints[i].list)
+				printf("\t%s $%d\n", st.type.c_str(), st.id);
 		}
-		// inputs
 		printf(":inputs:       $%d\n", inputs.size());
 		for (int i = 0; i < inputs.size(); i++) {
-			printf("  $%d  varpath $%d, prompt \"%s\"\n", i, inputs[i].varpath, inputs[i].prompt.c_str());
+			printf("  $%d \tprompt $%d, varpath $%d\n", i, inputs[i].prompt, inputs[i].varpath);
 		}
-		// ifs
 		printf(":ifs:          $%d\n", ifs.size());
 		for (int i = 0; i < ifs.size(); i++) {
-			printf("  $%d  ", i);
+			// printf("  $%d  ", i);
+			// for (const auto& it : ifs[i].ifthens)
+			// 	printf("(cond $%d, block $%d)  ", it.cond, it.block);
+			// printf("\n");
+			printf("  $%d\n", i);
 			for (const auto& it : ifs[i].ifthens)
-				printf("(cond $%d, block $%d)  ", it.cond, it.block);
-			printf("\n");
+				printf("\tcond $%d, block $%d\n", it.cond, it.block);
 		}
-		// whiles
 		printf(":whiles:       $%d\n", whiles.size());
 		for (int i = 0; i < whiles.size(); i++) {
-			printf("  $%d  cond $%d, block $%d\n", i, whiles[i].cond, whiles[i].block);
+			printf("  $%d \tcond $%d, block $%d\n", i, whiles[i].cond, whiles[i].block);
 		}
-		// returns
 		printf(":returns:      $%d\n", returns.size());
 		for (int i = 0; i < returns.size(); i++) {
-			printf("  $%d  expr $%d\n", i, returns[i].expression);
+			printf("  $%d \texpr $%d\n", i, returns[i].expression);
 		}
-		// calls
 		printf(":calls:        $%d\n", calls.size());
 		for (int i = 0; i < calls.size(); i++) {
-			printf("  $%d  id  ( ", i);
+			// printf("  $%d  %s  ( ", i, calls[i].id.c_str());
+			// for (const auto& a : calls[i].args)
+			// 	printf("$%d, ", a);
+			// printf(" )\n");
+			printf("  $%d  %s\n", i, calls[i].id.c_str());
 			for (const auto& a : calls[i].args)
-				printf("$%d, ", a);
-			printf(" )\n");
+				printf("\texpr $%d\n", a);
 		}
-		// sets
 		printf(":sets:         $%d\n", sets.size());
 		for (int i = 0; i < sets.size(); i++) {
-			printf("  $%d  varpath_dest $%d, varpath_source $%d\n", i, sets[i].varpath1, sets[i].varpath2);
+			printf("  $%d \tvarpath_dest $%d, varpath_source $%d\n", i, sets[i].varpath_dest, sets[i].varpath_source);
 		}
-		// lets
 		printf(":lets:         $%d\n", lets.size());
 		for (int i = 0; i < lets.size(); i++) {
-			printf("  $%d  varpath $%d, expr $%d\n", i, lets[i].varpath, lets[i].expression);
+			printf("  $%d \tvarpath $%d, expr $%d\n", i, lets[i].varpath, lets[i].expression);
 		}
 
 
-		// blocks
+		// statement blocks
 		printf(":blocks:       $%d\n", blocks.size());
 		for (int i = 0; i < blocks.size(); i++) {
 			printf("  $%d\n", i);
 			for (const auto& s : blocks[i].stmts)
-				printf("\t%s\n", s.c_str());
+				printf("\t%s $%d\n", s.type.c_str(), s.id);
 		}
-		// varpaths
+
+
+		// data
 		printf(":varpaths:     $%d\n", varpaths.size());
 		for (int i = 0; i < varpaths.size(); i++) {
-			printf("  $%d  ", i);
+			printf("  $%d \t", i);
 			for (const auto& l : varpaths[i].list)
 				printf("%s  ", l.c_str());
 			printf("\n");
 		}
-		// expressions
 		printf(":expressions:  $%d\n", expressions.size());
 		for (int i = 0; i < expressions.size(); i++) {
-			printf("  $%d  ", i);
+			printf("  $%d \t", i);
 			for (const auto& l : expressions[i].list)
 				printf("%s  ", l.c_str());
 			printf("\n");
+		}
+		printf(":literals:     $%d\n", literals.size());
+		for (int i = 0; i < literals.size(); i++) {
+			printf("  $%d \t\"%s\"\n", i, literals[i].c_str());
 		}
 	}
 };
