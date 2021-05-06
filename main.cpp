@@ -182,16 +182,17 @@ struct Input {
 
 #include "output.hpp"
 #include "outputb.hpp"
-#include "outputc.hpp"
+// #include "outputc.hpp"
 
 
 Input   inp;
 OutputB outp;
 // OutputC outp;
 
-#include "method1.hpp"
+// #include "method1.hpp"
+// #include "testsm1.hpp"
 #include "method2.hpp"
-#include "tests.hpp"
+#include "testsm2.hpp"
 
 int main() {
 	printf("hello world\n");

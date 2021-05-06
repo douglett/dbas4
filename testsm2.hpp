@@ -1,7 +1,5 @@
 #pragma once
 
-int tt_type = 2;
-
 
 void tt_struct() {
 	inp.load({
@@ -12,8 +10,7 @@ void tt_struct() {
 		"end struct",
 		// "",
 	});
-	if      (tt_type == 1)  state.push(PState::PS_STRUCT),  ploop();
-	else if (tt_type == 2)  ps_struct();
+	ps_struct();
 }
 void tt_struct2() {
 	inp.load({
@@ -27,8 +24,7 @@ void tt_struct2() {
 		"	float b[]",
 		"end struct",
 	});
-	if      (tt_type == 1)  state.push(PState::PS_STRUCT_BLOCK),  ploop();
-	else if (tt_type == 2)  ps_segment("struct");
+	ps_segment("struct");
 }
 void tt_globals() {
 	inp.load({
@@ -37,8 +33,7 @@ void tt_globals() {
 		"",
 		"dim float c[]",
 	});
-	if      (tt_type == 1)  state.push(PState::PS_GLOBAL_BLOCK), ploop();
-	else if (tt_type == 2)  ps_segment("dim");
+	ps_segment("dim");
 }
 void tt_function() {
 	inp.load({
@@ -47,8 +42,7 @@ void tt_function() {
 		// "",
 		"end function",
 	});
-	if      (tt_type == 1)  state.push(PState::PS_FUNCTION), ploop();
-	else if (tt_type == 2)  ps_function();
+	ps_function();
 }
 void tt_expression() {
 	inp.load({
@@ -109,6 +103,5 @@ void tt_block_large() {
 		"",
 		"end"
 	});
-	if      (tt_type == 1)  state.push(PState::PS_BLOCK), ploop();
-	else if (tt_type == 2)  ps_block();
+	ps_block();
 }

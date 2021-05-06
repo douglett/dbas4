@@ -33,9 +33,10 @@ void ps_varpath() {
 
 void ps_segment(const string& type) {
 	while (true)
-		if      (inp.get("endl"))  ; // ingnore empty lines
-		else if (type == "dim" && inp.peek("'dim"))        ps_dim();
-		else if (type == "struct" && inp.peek("'struct"))  ps_struct();
+		if      (inp.get("endl"))  ;                           // ingnore empty lines
+		else if (type == "dim" && inp.peek("'dim"))            ps_dim();
+		else if (type == "struct" && inp.peek("'struct"))      ps_struct();
+		else if (type == "function" && inp.peek("'function"))  ps_function();
 		else    break;
 }
 
