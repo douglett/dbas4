@@ -37,9 +37,25 @@ void tt_globals() {
 }
 void tt_function() {
 	inp.load({
-		// "function foo()",
+		"function foo()",
+		"",
+		"end function",
+	});
+	ps_function();
+}
+void tt_function2() {
+	inp.load({
 		"function bar(a, float b[])",
-		// "",
+		"",
+		"end function",
+	});
+	ps_function();
+}
+void tt_function3() {
+	inp.load({
+		"function foo()",
+		"	print \"hello world\"",
+		"	let a = 1 + 2 * 3",
 		"end function",
 	});
 	ps_function();

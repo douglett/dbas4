@@ -40,6 +40,7 @@ struct wb_struct {
 struct wb_function {
 	string id;
 	vector<wb_dimshort> args;
+	int block;
 };
 struct wb_stmt_block {
 	struct stmt { string type; int id; };
@@ -146,7 +147,8 @@ struct OutputB : Output {
 	void block_start() {
 		blocks.push_back({});
 		int idx = blocks.size() - 1;
-		if      (curstate() == PS_STMT_IF)     ifs.at(curid()).ifthens.back().block = idx;
+		if      (curstate() == PS_FUNCTION)    funcs.at(curid()).block = idx;
+		else if (curstate() == PS_STMT_IF)     ifs.at(curid()).ifthens.back().block = idx;
 		else if (curstate() == PS_STMT_WHILE)  whiles.at(curid()).block = idx;
 		else    statewarn(),  Output::block_start();
 		state.push_back({ PS_STMT_BLOCK, idx });

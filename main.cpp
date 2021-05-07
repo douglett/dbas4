@@ -8,6 +8,7 @@ using namespace std;
 
 
 // useful stuff
+typedef  int32_t  i32;
 struct Helpers {
 	static int is_alpha    (char c) { return (c>='A' && c<='Z') || (c>='a' && c<='z') || c=='_'; }
 	static int is_num      (char c) { return c>='0' && c<='9'; }
@@ -194,6 +195,8 @@ OutputB outp;
 #include "method2.hpp"
 #include "testsm2.hpp"
 
+#include "runtime1.hpp"
+
 int main() {
 	printf("hello world\n");
 	
@@ -201,11 +204,14 @@ int main() {
 	// tt_struct2();
 	// tt_globals();
 	// tt_function();
+	// tt_function2();
+	// tt_function3();
 	// tt_expression();
 	// tt_if();
 	// tt_if2();
 	// tt_variables();
-	tt_block_large();
+	// tt_block_large();
+	// outp.show();
 
-	outp.show();
+	ttr_function();
 }
