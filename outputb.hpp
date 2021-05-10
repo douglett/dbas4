@@ -40,6 +40,7 @@ struct wb_struct {
 struct wb_function {
 	string id;
 	vector<wb_dimshort> args;
+	vector<int> dims;
 	int block;
 };
 struct wb_stmt_block {
@@ -92,7 +93,7 @@ struct OutputB : Output {
 
 	vector<wb_struct>        structs;
 	vector<wb_dim>           dims;
-	vector<wb_function>      funcs;
+	vector<wb_function>      functions;
 	vector<wb_stmt_print>    prints;
 	vector<wb_stmt_input>    inputs;
 	vector<wb_stmt_if>       ifs;
@@ -122,12 +123,14 @@ struct OutputB : Output {
 	}
 	void dim_short(const string& type, const string& id, bool isarray) {
 		if      (curstate() == PS_STRUCT)    structs.at(curid()).members.push_back({ type, id, isarray });
-		else if (curstate() == PS_FUNCTION)  funcs.at(curid()).args.push_back({ type, id, isarray });
+		else if (curstate() == PS_FUNCTION)  functions.at(curid()).args.push_back({ type, id, isarray });
 		else    statewarn(),  Output::dim_short(type, id, isarray);
 	}
 	void dim_start(const string& type, const string& id) {
 		dims.push_back({ type, id });
-		state.push_back({ PS_DIM, int(dims.size()-1) });
+		int idx = dims.size() - 1;
+		if      (curstate() == PS_FUNCTION)  functions.at(curid()).dims.push_back(idx);
+		state.push_back({ PS_DIM, idx });
 	}
 	void dim_isarray(bool val) {
 		dims.at(curid()).isarray = val;
@@ -136,8 +139,8 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void func_start(const string& id) {
-		funcs.push_back({ id });
-		state.push_back({ PS_FUNCTION, int(funcs.size()-1) });
+		functions.push_back({ id });
+		state.push_back({ PS_FUNCTION, int(functions.size()-1) });
 	}
 	void func_end() {
 		state.pop_back();
@@ -147,7 +150,7 @@ struct OutputB : Output {
 	void block_start() {
 		blocks.push_back({});
 		int idx = blocks.size() - 1;
-		if      (curstate() == PS_FUNCTION)    funcs.at(curid()).block = idx;
+		if      (curstate() == PS_FUNCTION)    functions.at(curid()).block = idx;
 		else if (curstate() == PS_STMT_IF)     ifs.at(curid()).ifthens.back().block = idx;
 		else if (curstate() == PS_STMT_WHILE)  whiles.at(curid()).block = idx;
 		else    statewarn(),  Output::block_start();
@@ -163,6 +166,7 @@ struct OutputB : Output {
 	}	
 	void print_start() {
 		prints.push_back({});
+		_block_append_stmt("print", prints.size()-1);
 		state.push_back({ PS_STMT_PRINT, int(prints.size()-1) });
 	}
 	void print_end() {
@@ -292,11 +296,16 @@ struct OutputB : Output {
 		for (int i = 0; i < dims.size(); i++) {
 			printf("  $%d  %s %s %s\n", i, dims[i].type.c_str(), dims[i].id.c_str(), (dims[i].isarray ? "[]" : ""));
 		}
-		printf(":funcs:        $%d\n", funcs.size());
-		for (int i = 0; i < funcs.size(); i++) {
-			printf("  %s\n", funcs[i].id.c_str());
-			for (const auto& d : funcs[i].args)
+		printf(":functions:    $%d\n", functions.size());
+		for (int i = 0; i < functions.size(); i++) {
+			printf("  %s\n", functions[i].id.c_str());
+			for (const auto& d : functions[i].args)
 				printf("\t%s %s %s\n", d.type.c_str(), d.id.c_str(), (d.isarray ? "[]" : ""));
+			printf("\tdims   ");
+			for (const auto& d : functions[i].dims)
+				printf("$%d,  ", d);
+			printf("\n");
+			printf("\tblock  $%d\n", functions[i].block);
 		}
 
 

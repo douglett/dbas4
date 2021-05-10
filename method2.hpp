@@ -72,6 +72,7 @@ void ps_function() {
 		else if (inp.peek("', identifier"))  inp.get("',"),  ps_dim_short();
 		else    break;
 	inp.expect("') endl");
+	ps_segment("dim");
 	ps_block();
 	inp.expect("'end 'function endall");
 	outp.func_end();
