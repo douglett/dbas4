@@ -20,7 +20,7 @@ struct Runtime1 {
 	void r_func(const string& fname) {
 		int i = 0;
 		for (i = 0; i < outp.functions.size(); i++)
-			if (outp.functions[i].id == fname) break;
+			if (outp.functions[i].id == fname)  break;
 		const auto& fn = outp.functions.at(i);
 
 		for (auto d : fn.dims)  r_dim(d);
@@ -42,6 +42,7 @@ struct Runtime1 {
 				for (auto& arg : print.list)
 					if      (arg.type == "lit" )  printf("%s", outp.literals.at(arg.id).c_str());
 					else if (arg.type == "expr")  r_expr(arg.id),  printf("%d", pop());
+					else    error();
 				printf("\n");
 			}
 
@@ -51,9 +52,7 @@ struct Runtime1 {
 				r_varpath_set(let.varpath);
 			}
 			
-			else {
-				error();
-			}
+			else  error();
 	}
 
 	void r_varpath_get(i32 idx) {
@@ -81,13 +80,6 @@ struct Runtime1 {
 			else    error();
 		}
 	}
-
-	// void rloop() {
-	// 	switch (A) {
-	// 	case PS_FUNCTION:
-
-	// 	}
-	// }
 };
 
 
