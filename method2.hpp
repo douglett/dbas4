@@ -36,10 +36,11 @@ void ps_segment(const string& type) {
 }
 
 void ps_dim() {
-	if    (inp.get("'dim @identifier @identifier", r1))  outp.dim_start(r1.at(0), r1.at(1));
-	else  inp.expect("'dim @identifier", r1), outp.dim_start("int", r1.at(0));
-	if    (inp.get("'[ ']")) outp.dim_isarray(true);
-	if    (inp.get("'="))  ps_expression();
+	bool isarray = false;
+	if    (inp.get("'dim @identifier @identifier", r1))  outp.dim_start(r1.at(0),  r1.at(1));
+	else  inp.expect("'dim @identifier", r1),  outp.dim_start("int", r1.at(0));
+	if    (inp.get("'[ ']"))  isarray = true,  outp.dim_isarray(true);
+	if    (inp.get("'="))  isarray ? ps_varpath() : ps_expression();
 	inp.expect("endall");
 	outp.dim_end();
 }

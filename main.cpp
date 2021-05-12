@@ -20,6 +20,12 @@ struct Helpers {
 		while (ss >> s)  vs.push_back(s);
 		return vs;
 	}
+	static string join(const vector<string>& vs, const string& sep=" ") {
+		string s;
+		for (int i = 0; i < vs.size(); i++)
+			s += (i > 0 ? sep : "") + vs[i];
+		return s;
+	}
 };
 
 

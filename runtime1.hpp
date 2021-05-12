@@ -29,7 +29,8 @@ struct Runtime1 {
 	
 	void r_dim(i32 idx) {
 		const auto& dim = outp.dims.at(idx);
-		dims[dim.id] = 0;
+		if    (dim.expression == -1)  dims[dim.id] = 0;
+		else  r_expr(dim.expression),  dims[dim.id] = pop();
 	}
 
 	void r_block(i32 idx) {
@@ -89,8 +90,8 @@ Runtime1 run;
 void ttr_function() {
 	inp.load({
 		"function foo()",
-		"	dim a",
-		"	let a = 11*2+3",
+		"	dim a = 101",
+		// "	let a = 11*2+3",
 		"	print \"result: \", a",
 		"end function",
 		"",

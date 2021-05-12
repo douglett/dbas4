@@ -28,6 +28,7 @@ enum PSTATE_T {
 struct wb_dim {
 	string type, id;
 	bool isarray;
+	int  expression, varpath;
 };
 struct wb_dimshort {
 	string type, id;
@@ -127,7 +128,7 @@ struct OutputB : Output {
 		else    statewarn(),  Output::dim_short(type, id, isarray);
 	}
 	void dim_start(const string& type, const string& id) {
-		dims.push_back({ type, id });
+		dims.push_back({ type, id, false, -1, -1 });
 		int idx = dims.size() - 1;
 		if      (curstate() == PS_FUNCTION)  functions.at(curid()).dims.push_back(idx);
 		state.push_back({ PS_DIM, idx });
@@ -140,6 +141,7 @@ struct OutputB : Output {
 	}
 	void func_start(const string& id) {
 		functions.push_back({ id });
+			functions.back().block = -1;
 		state.push_back({ PS_FUNCTION, int(functions.size()-1) });
 	}
 	void func_end() {
@@ -183,6 +185,7 @@ struct OutputB : Output {
 	}
 	void if_start() {
 		ifs.push_back({ {{ -1, -1 }} });
+		// ifs.push_back({});
 		_block_append_stmt("if", ifs.size()-1);
 		state.push_back({ PS_STMT_IF, int(ifs.size()-1) });
 	}
@@ -190,7 +193,7 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void while_start() {
-		whiles.push_back({});
+		whiles.push_back({ -1, -1 });
 		_block_append_stmt("while", whiles.size()-1);
 		state.push_back({ PS_STMT_WHILE, int(whiles.size()-1) });
 	}
@@ -198,7 +201,7 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void return_start() {
-		returns.push_back({});
+		returns.push_back({ -1 });
 		_block_append_stmt("return", returns.size()-1);
 		state.push_back({ PS_STMT_RETURN, int(returns.size()-1) });
 	}
@@ -222,7 +225,7 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void let_start() {
-		lets.push_back({});
+		lets.push_back({ -1, -1 });
 		_block_append_stmt("let", lets.size()-1);
 		state.push_back({ PS_STMT_LET, int(lets.size()-1) });
 	}
@@ -250,6 +253,7 @@ struct OutputB : Output {
 		if      (curstate() == PS_STMT_IF)      ifs.at(curid()).ifthens.back().cond = idx;
 		else if (curstate() == PS_STMT_WHILE)   whiles.at(curid()).cond = idx;
 		else if (curstate() == PS_STMT_RETURN)  returns.at(curid()).expression = idx;
+		else if (curstate() == PS_DIM)          dims.at(curid()).expression = idx;
 		else if (curstate() == PS_STMT_LET)     lets.at(curid()).expression = idx;
 		else if (curstate() == PS_STMT_CALL)    calls.at(curid()).args.push_back(idx);
 		else if (curstate() == PS_VARPATH)      varpaths.at(curid()).list.push_back("expr $" + to_string(idx));
@@ -267,6 +271,7 @@ struct OutputB : Output {
 		varpaths.push_back({ {id} });
 		int idx = varpaths.size() - 1;
 		if      (curstate() == PS_EXPRESSION)   expressions.at(curid()).list.push_back("varpath "+to_string(idx));
+		else if (curstate() == PS_DIM)          dims.at(curid()).varpath = idx;
 		else if (curstate() == PS_STMT_LET)     lets.at(curid()).varpath = idx;
 		else if (curstate() == PS_STMT_INPUT)   inputs.at(curid()).varpath = idx;
 		else if (curstate() == PS_STMT_SET) {
