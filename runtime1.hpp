@@ -3,6 +3,7 @@
 
 
 struct Runtime1 {
+	string ctrl;
 	map<string, i32>  dims;
 	vector<i32>       stack;
 
@@ -25,12 +26,14 @@ struct Runtime1 {
 
 		for (auto d : fn.dims)  r_dim(d);
 		r_block(fn.block);
+		if    (ctrl == "return")  ctrl = "";  // return stack top
+		else  push(0);  // default return
 	}
 	
 	void r_dim(i32 idx) {
 		const auto& dim = outp.dims.at(idx);
 		if    (dim.expression == -1)  dims[dim.id] = 0;
-		else  r_expr(dim.expression),  dims[dim.id] = pop();
+		else  r_expression(dim.expression),  dims[dim.id] = pop();
 	}
 
 	void r_block(i32 idx) {
@@ -38,18 +41,43 @@ struct Runtime1 {
 		const auto& block = outp.blocks.at(idx);
 		for (auto& stmt : block.stmts)
 			// 
-			if (stmt.type == "print") {
+			if (ctrl == "return")  break;
+			
+			else if (stmt.type == "print") {
 				const auto& print = outp.prints.at(stmt.id);
 				for (auto& arg : print.list)
 					if      (arg.type == "lit" )  printf("%s", outp.literals.at(arg.id).c_str());
-					else if (arg.type == "expr")  r_expr(arg.id),  printf("%d", pop());
+					else if (arg.type == "expr")  r_expression(arg.id),  printf("%d", pop());
 					else    error();
 				printf("\n");
 			}
 
+			// else if (stmt.type == "input") {
+
+			else if (stmt.type == "if") {
+				const auto& ifx = outp.ifs.at(stmt.id);
+				for (auto& ifthen : ifx.ifthens)
+					if  (r_expression(ifthen.cond), pop())  { r_block(ifthen.block);  break; }
+			}
+
+			else if (stmt.type == "while") {
+				const auto& whilex = outp.whiles.at(stmt.id);
+				while (r_expression(whilex.cond), pop())
+					r_block(whilex.block);
+			}
+			
+			else if (stmt.type == "return") {
+				const auto& ret = outp.returns.at(stmt.id);
+				if (ret.expression > -1)  r_expression(ret.expression);
+				ctrl = "return";
+			}
+
+			// else if (stmt.type == "call") {
+			// else if (stmt.type == "set") {
+
 			else if (stmt.type == "let") {
 				const auto& let = outp.lets.at(stmt.id);
-				r_expr(let.expression);
+				r_expression(let.expression);
 				r_varpath_set(let.varpath);
 			}
 			
@@ -66,7 +94,7 @@ struct Runtime1 {
 		dims.at( vp.list.at(0) ) = pop();
 	}
 
-	void r_expr(i32 idx) {
+	void r_expression(i32 idx) {
 		const auto& expr = outp.expressions.at(idx);
 		i32 v = 0;
 		for (auto& li : expr.list) {
