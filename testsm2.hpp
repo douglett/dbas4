@@ -1,7 +1,8 @@
 #pragma once
 
-extern Input   inp;
-extern OutputB outp;
+extern Input    inp;
+extern OutputB  outp;
+extern Method2  meth;
 
 
 void tt_struct() {
@@ -13,7 +14,7 @@ void tt_struct() {
 		"end struct",
 		// "",
 	});
-	ps_struct();
+	meth.ps_struct();
 }
 void tt_struct2() {
 	inp.load({
@@ -27,7 +28,7 @@ void tt_struct2() {
 		"	float b[]",
 		"end struct",
 	});
-	ps_segment("struct");
+	meth.ps_segment("struct");
 }
 void tt_globals() {
 	inp.load({
@@ -36,7 +37,7 @@ void tt_globals() {
 		"",
 		"dim float c[]",
 	});
-	ps_segment("dim");
+	meth.ps_segment("dim");
 }
 void tt_function() {
 	inp.load({
@@ -44,7 +45,7 @@ void tt_function() {
 		"",
 		"end function",
 	});
-	ps_function();
+	meth.ps_function();
 }
 void tt_function2() {
 	inp.load({
@@ -52,7 +53,7 @@ void tt_function2() {
 		"",
 		"end function",
 	});
-	ps_function();
+	meth.ps_function();
 }
 void tt_function3() {
 	inp.load({
@@ -61,13 +62,13 @@ void tt_function3() {
 		"	let a = 1 + 2 * 3",
 		"end function",
 	});
-	ps_function();
+	meth.ps_function();
 }
 void tt_expression() {
 	inp.load({
 		"5 + 3 * 2",
 	});
-	ps_expression();
+	meth.ps_expression();
 }
 void tt_if() {
 	inp.load({
@@ -76,7 +77,7 @@ void tt_if() {
 		"end if",
 		"",
 	});
-	ps_if();
+	meth.ps_if();
 }
 void tt_if2() {
 	inp.load({
@@ -89,13 +90,13 @@ void tt_if2() {
 		"end if",
 		"",
 	});
-	ps_if();
+	meth.ps_if();
 }
 void tt_variables() {
 	inp.load({
 		"foo.bar[10].foo"
 	});
-	ps_varpath();
+	meth.ps_varpath();
 }
 
 void tt_block_large() {
@@ -122,5 +123,5 @@ void tt_block_large() {
 		"",
 		"end"
 	});
-	ps_block();
+	meth.ps_block();
 }

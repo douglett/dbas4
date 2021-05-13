@@ -124,6 +124,11 @@ struct OutputB : Output {
 	void     statewarn() { printf("<statewarn %d>   ", curstate()); }
 
 
+// ----------------------------------------
+// Overridden parsing methods
+// ----------------------------------------
+
+
 	int clear() {
 		*this = OutputB();
 		return 1;
@@ -302,6 +307,11 @@ struct OutputB : Output {
 	void varpath_end() {
 		state.pop_back();
 	}
+
+
+// ----------------------------------------
+// Pretty print output
+// ----------------------------------------
 
 
 	void show() {

@@ -2,6 +2,11 @@
 #include <map>
 
 
+extern Input    inp;
+extern OutputB  outp;
+extern Method2  meth;
+
+
 struct Runtime1 {
 	string ctrl;
 	map<string, i32>  dims;
@@ -124,7 +129,7 @@ void ttr_function() {
 		"end function",
 		"",
 	});
-	ps_function();
+	meth.ps_function();
 	outp.show();
 	printf("-----\n");
 	printf("<running>\n");
