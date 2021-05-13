@@ -22,19 +22,8 @@ Method2  meth = { inp, outp };
 
 int main() {
 	printf("hello world\n");
-	
-	// tt_struct();
-	// tt_struct2();
-	// tt_globals();
-	// tt_function();
-	// tt_function2();
-	// tt_function3();
-	// tt_expression();
-	// tt_if();
-	// tt_if2();
-	// tt_variables();
-	// tt_block_large();
-	// outp.show();
+	// run all tests
+	tt_run_all();
 
 	ttr_function();
 }

@@ -121,6 +121,7 @@ Runtime1 run;
 
 
 void ttr_function() {
+	outp.clear();
 	inp.load({
 		"function foo()",
 		"	dim a = 101",
