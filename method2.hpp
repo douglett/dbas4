@@ -88,23 +88,13 @@ struct Method2 {
 	}
 
 	void ps_printargs() {
-		// while (true) {
-		// 	if      (inp.peek("'\""))         ps_string_literal();
-		// 	else if (inp.peek("identifier"))  ps_varpath();
-		// 	else    inp.expect("identifier");
-		// 	if      (inp.peek("endl"))  break;
-		// 	else    inp.expect("',");
-		// }
 		bool first = true;
 		while (true) {
 			if (inp.peek("endl"))  break;
 			if (!first)  inp.expect("',");
 			if      (inp.peek("'\""))         ps_string_literal();
-			// else if (inp.peek("identifier"))  ps_varpath();
-			// else    inp.expect("identifier");
 			else    ps_expression();
 			first = false;
-			// outp.print_next();
 		}
 	}
 
@@ -257,13 +247,16 @@ struct Method2 {
 	}
 	void pse_compare() {
 		pse_add();
-		if (	inp.get("'==", r1) || inp.get("'!=", r1) 
-				|| inp.get("'>=", r1) || inp.get("'<=", r1) 
-				|| inp.get("'<", r1) || inp.get("'>", r1)
+		// printf("here1\n");
+		if (	inp.get("@'==", r1) || inp.get("@'!=", r1) 
+				|| inp.get("@'>=", r1) || inp.get("@'<=", r1) 
+				|| inp.get("@'<", r1) || inp.get("@'>", r1)
 			) {
+			// printf("here2 [%s]\n", r1.at(0).c_str());
 			string op = r1.at(0);
 			pse_compare();
 			outp.ex_push("cmp "+op);
+			// printf("here3\n");
 		}
 	}
 

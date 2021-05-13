@@ -28,8 +28,11 @@ struct Pattern {
 
 	Pattern(string patt) {
 		assert(patt.length() > 0);
+		// if      (patt.front() == '\'')  patt = patt.substr(1), type = PT_LITERAL;
+		// else if (patt.front() == '@' )  patt = patt.substr(1), type = PT_RULE, is_record = true;
+		// else    type = PT_RULE;
+		if      (patt.front() == '@' )  patt = patt.substr(1), is_record = true;
 		if      (patt.front() == '\'')  patt = patt.substr(1), type = PT_LITERAL;
-		else if (patt.front() == '@' )  patt = patt.substr(1), type = PT_RULE, is_record = true;
 		else    type = PT_RULE;
 		assert(patt.length() > 0);
 		pattern = patt;

@@ -413,7 +413,7 @@ struct OutputB : Output {
 		for (int i = 0; i < expressions.size(); i++) {
 			printf("  $%d \t", i);
 			for (const auto& l : expressions[i].list)
-				printf("%s  ", l.c_str());
+				printf("%s,  ", l.c_str());
 			printf("\n");
 		}
 		printf(":literals:     $%d\n", literals.size());

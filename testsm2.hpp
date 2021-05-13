@@ -96,6 +96,19 @@ void tt_expression() {
 	meth.ps_expression();
 	tt_ok();
 }
+void tt_expression2() {
+	tt_start("tt_expression2");
+	outp.clear();
+	inp.load({
+		"1 == 2  "
+		"1==2  "
+		"1<2  "
+	});
+	meth.ps_expression();
+	meth.ps_expression();
+	meth.ps_expression();
+	tt_ok();
+}
 void tt_if() {
 	tt_start("tt_if");
 	outp.clear();
@@ -182,6 +195,7 @@ void tt_run_all() {
 	tt_function2();
 	tt_function3();
 	tt_expression();
+	tt_expression2();
 	tt_if();
 	tt_if2();
 	tt_variables();

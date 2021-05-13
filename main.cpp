@@ -23,7 +23,9 @@ Method2  meth = { inp, outp };
 int main() {
 	printf("hello world\n");
 	// run all tests
+	// tt_expression2();
 	tt_run_all();
+	// outp.show();
 
-	ttr_function();
+	// ttr_function();
 }
