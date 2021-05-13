@@ -98,10 +98,7 @@ struct wb_expression {
 
 
 struct OutputB : Output {
-	struct pstate {
-		PSTATE_T pstate;
-		int id;
-	};
+	struct pstate { PSTATE_T pstate; int id; };
 	vector<pstate>           state;
 
 	vector<wb_struct>        structs;
@@ -125,6 +122,12 @@ struct OutputB : Output {
 	PSTATE_T curstate()  { return state.size() ? state.back().pstate : PS_NONE; }
 	int      curid()     { return state.size() ? state.back().id     : -1; }
 	void     statewarn() { printf("<statewarn %d>   ", curstate()); }
+
+
+	int clear() {
+		*this = OutputB();
+		return 1;
+	}
 
 
 	void struct_start(const string& id) {

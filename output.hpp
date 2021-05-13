@@ -7,7 +7,10 @@
 
 
 struct Output {
-	// vector<string> output;
+	int clear() {  // reset
+		return 1;
+	}
+
 
 	void struct_start(const string& id) {
 		printf("struct name: [%s]\n", id.c_str());

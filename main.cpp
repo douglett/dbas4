@@ -7,7 +7,7 @@
 #include "input.hpp"
 #include "outputb.hpp"
 #include "method2.hpp"
-#include "testsm2.hpp"
+// #include "testsm2.hpp"
 #include "runtime1.hpp"
 
 using namespace std;

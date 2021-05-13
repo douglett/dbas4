@@ -98,14 +98,16 @@ struct Input {
 		fs.open(fname, ios::in);
 		if (!fs.is_open())
 			return fprintf(stderr, "could not open file: %s\n", fname.c_str()), 0;
-		return type = 1, 1;
+		return type = 1,  1;
 	}
 	int close() {
 		ss = stringstream();
 		if (fs.is_open())
 			fs.close();
-		type = 0;
-		return 1;
+		return type = 0,  1;
+	}
+	int clear() {  // reset
+		return close();
 	}
 	int load(const vector<string>& lines) {
 		close();
@@ -113,7 +115,7 @@ struct Input {
 			if (i == 0) ss << lines[i];
 			else        ss << endl << lines[i];
 		ss.seekg(ios::beg), ss.clear();
-		return type = 0, 1;
+		return type = 0,  1;
 	}
 
 	// helpers
