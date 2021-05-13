@@ -45,19 +45,19 @@ struct Method2 {
 
 	void ps_dim() {
 		bool isarray = false;
-		if    (inp.get("'dim @identifier @identifier", r1))  outp.dim_start(r1.at(0),  r1.at(1));
-		else  inp.expect("'dim @identifier", r1),  outp.dim_start("int", r1.at(0));
-		if    (inp.get("'[ ']"))  isarray = true,  outp.dim_isarray(true);
-		if    (inp.get("'="))  isarray ? ps_varpath() : ps_expression();
+		if    (inp.get("'dim @identifier @identifier", r1))  outp.dim_start( r1.at(0),  r1.at(1) );
+		else  inp.expect("'dim @identifier", r1),            outp.dim_start( "int", r1.at(0) );
+		if    (inp.get("'[ ']"))                             isarray = true,  outp.dim_isarray(true);
+		if    (inp.get("'="))                                isarray ? ps_varpath() : ps_expression();
 		inp.expect("endall");
 		outp.dim_end();
 	}
 
 	void ps_dim_short() {
-		if      (inp.get("@identifier @identifier '[ ']", r1))  outp.dim_short(r1.at(0), r1.at(1), true);
-		else if (inp.get("@identifier @identifier", r1))  outp.dim_short(r1.at(0), r1.at(1), false);
-		else if (inp.get("@identifier '[ ']", r1))  outp.dim_short("int", r1.at(0), true);
-		else    inp.expect("@identifier", r1),  outp.dim_short("int", r1.at(0), false);
+		if      (inp.get("@identifier @identifier '[ ']", r1))  outp.dim_short( r1.at(0), r1.at(1), true  );
+		else if (inp.get("@identifier @identifier", r1))        outp.dim_short( r1.at(0), r1.at(1), false );
+		else if (inp.get("@identifier '[ ']", r1))              outp.dim_short( "int",    r1.at(0), true  );
+		else    inp.expect("@identifier", r1),                  outp.dim_short( "int",    r1.at(0), false );
 	}
 
 	void ps_struct() {

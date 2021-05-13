@@ -106,11 +106,11 @@ struct Runtime1 {
 			// printf("  [%s]  \n", li.c_str());
 			const auto inst = Helpers::splitws(li);
 			if      (inst.at(0) == "varpath")  r_varpath_get( stoi(inst.at(1).c_str()) );
-			else if (inst.at(0) == "i")    push( stoi(inst.at(1).c_str()) );
-			else if (inst.at(0) == "add")  push( pop() + pop() );
-			else if (inst.at(0) == "sub")  v = pop(),  push( pop() - v );
-			else if (inst.at(0) == "mul")  push( pop() * pop() );
-			else if (inst.at(0) == "div")  v = pop(),  push( pop() / v );
+			else if (inst.at(0) == "i")        push( stoi(inst.at(1).c_str()) );
+			else if (inst.at(0) == "add")      push( pop() + pop() );
+			else if (inst.at(0) == "sub")      v = pop(),  push( pop() - v );
+			else if (inst.at(0) == "mul")      push( pop() * pop() );
+			else if (inst.at(0) == "div")      v = pop(),  push( pop() / v );
 			else    error();
 		}
 	}

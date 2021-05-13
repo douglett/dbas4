@@ -137,6 +137,21 @@ void tt_if2() {
 	meth.ps_if();
 	tt_ok();
 }
+void tt_spacing() {
+	tt_start("tt_spacing");
+	outp.clear();
+	inp.load({
+		"printa", // expect failure
+		""
+	});
+	try {
+		meth.ps_print();
+		tt_err();  // no error = failure
+	}
+	catch (ParseError e) {
+		tt_ok();   // error = success
+	}
+}
 void tt_variables() {
 	tt_start("tt_variables");
 	outp.clear();
@@ -198,6 +213,7 @@ void tt_run_all() {
 	tt_expression2();
 	tt_if();
 	tt_if2();
+	tt_spacing();
 	tt_variables();
 	tt_block_large();
 	// outp.show();

@@ -3,6 +3,19 @@
 #include <sstream>
 
 
+struct ParseError : std::exception {
+	int errorcode = 0;
+	int lineindex = -1;
+	string msg = "ParseError: ...";
+	void buildmsg() {
+		msg = "ParseError: error code " + to_string(errorcode) + ", on line " + to_string(lineindex+1);
+	}
+	virtual const char* what() const noexcept {
+		return msg.c_str();
+	}
+};
+
+
 // ----------------------------------------
 // Source input matching pattern
 // ----------------------------------------
@@ -37,7 +50,15 @@ struct Pattern {
 		assert(patt.length() > 0);
 		pattern = patt;
 	}
-	int record() { return is_record; }
+	int record() {
+		return is_record;
+	}
+	int wordbreak(iostream& input, const string& str) {
+		if      (str.length() == 0)  return 0;
+		else if (!Helpers::is_alphanum(str.back()))  return 1;
+		else if (Helpers::is_alphanum(str.back()) && !Helpers::is_alphanum(input.peek()))  return 1;
+		else    return 0;
+	}
 	int match(iostream& input, string& result) {
 		result = "";
 		switch (type) {
@@ -49,17 +70,20 @@ struct Pattern {
 				// TODO: word boundry check needed?
 				result.push_back(input.get());
 			}
-			return 1;
+			// return 1;
+			return wordbreak(input, result);
 		case PT_RULE:
 			if (pattern == "identifier") {
 				if (!Helpers::is_alpha(input.peek()))  return 0;
 				result += input.get();
 				while (Helpers::is_alphanum(input.peek()))  result += input.get();
-				return 1;
+				// return 1;
+				return wordbreak(input, result);
 			}
 			else if (pattern == "integer") {
 				while (Helpers::is_num(input.peek()))  result += input.get();
-				return result.length() > 0;
+				// return result.length() > 0;
+				return result.length() > 0 && wordbreak(input, result);
 			}
 			else if (pattern == "string_literal") {
 				if (input.peek() != '"')  return 0;
@@ -68,7 +92,8 @@ struct Pattern {
 					result += input.get();
 				if (input.peek() != '"')  return 0;
 				input.get();
-				return 1;
+				// return 1;
+				return wordbreak(input, result);
 			}
 			else if (pattern == "endl")
 				return input.peek()=='\n' ? (input.get(), 1) : 0;
@@ -165,10 +190,15 @@ struct Input {
 
 	// error recording
 	int error(int errorcode) {
-		fprintf(stderr, "error code: %d\n", errorcode);
-		fprintf(stderr, "	on line: %d\n", lineindex()+1);
-		exit(1);
-		return 0;
+		// fprintf(stderr, "error code: %d\n", errorcode);
+		// fprintf(stderr, "	on line: %d\n", lineindex()+1);
+		// exit(1);
+		// return 0;
+		ParseError p;
+		p.errorcode = errorcode;
+		p.lineindex = lineindex();
+		p.buildmsg();
+		throw p;
 	}
 	int lineindex() {
 		int count = 0, c = 0;
