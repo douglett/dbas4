@@ -1,5 +1,8 @@
 #pragma once
 
+extern Input   inp;
+extern OutputB outp;
+
 
 void tt_struct() {
 	inp.load({

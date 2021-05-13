@@ -1,8 +1,9 @@
 #pragma once
+#include "output.hpp"
 
 
 // ----------------------------------------
-// Output method B (structure building)
+// Parse state typedef
 // ----------------------------------------
 
 
@@ -23,6 +24,12 @@ enum PSTATE_T {
 	PS_STMT_SET,
 	PS_STMT_LET,
 };
+
+
+
+// ----------------------------------------
+// Syntax holding structures
+// ----------------------------------------
 
 
 struct wb_dim {
@@ -83,6 +90,11 @@ struct wb_expression {
 	vector<string> list;
 };
 
+
+
+// ----------------------------------------
+// Output method B (structure building)
+// ----------------------------------------
 
 
 struct OutputB : Output {

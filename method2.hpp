@@ -1,5 +1,8 @@
 #pragma once
 
+extern Input   inp;
+extern OutputB outp;
+
 Input::Results r1, r2;
 
 void ps_segment(const string& type);
@@ -16,8 +19,6 @@ void ps_expression();
 // ----------------------------------------
 // Basic structure parsing
 // ----------------------------------------
-
-
 
 void ps_program() {
 	ps_segment("dim");
@@ -231,8 +232,6 @@ void ps_varpath() {
 // ----------------------------------------
 // Expression parsing 
 // ----------------------------------------
-
-
 
 void pse_atom() {
 	if    (inp.get("@integer", r1))  outp.ex_push("i "+r1.at(0));
