@@ -5,7 +5,7 @@
 #pragma once
 
 
-const int tt_type = 1;
+static const int tt_type = 1;
 
 
 void tt_struct() {

@@ -2,9 +2,9 @@
 #include <map>
 
 
-extern Input    inp;
+// extern Input    inp;
 extern OutputB  outp;
-extern Method2  meth;
+// extern Method2  meth;
 
 
 struct Runtime1 {
@@ -115,24 +115,3 @@ struct Runtime1 {
 		}
 	}
 };
-
-
-Runtime1 run;
-
-
-void ttr_function() {
-	outp.clear();
-	inp.load({
-		"function foo()",
-		"	dim a = 101",
-		// "	let a = 11*2+3",
-		"	print \"result: \", a",
-		"end function",
-		"",
-	});
-	meth.ps_function();
-	outp.show();
-	printf("-----\n");
-	printf("<running>\n");
-	run.r_func("foo");
-}

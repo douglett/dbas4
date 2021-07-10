@@ -7,9 +7,10 @@
 #include "input.hpp"
 #include "outputb.hpp"
 #include "method2.hpp"
+#include "runtime1.hpp"
 #include "testsm2.hpp"
 #include "testsob.hpp"
-#include "runtime1.hpp"
+#include "testsr1.hpp"
 
 using namespace std;
 
@@ -25,9 +26,7 @@ int main() {
 	printf("hello world\n");
 	// run all tests
 	// testsm2_runall();
-	testsob_runall();
-	// tt_spacing();
-	outp.show();
-
-	// ttr_function();
+	// testsob_runall();
+	// outp.show();
+	ttr_function();
 }
