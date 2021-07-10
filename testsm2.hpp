@@ -1,3 +1,6 @@
+// ----------------------------------------
+// Tesst for Parsing Method 2
+// ----------------------------------------
 #pragma once
 
 extern Input    inp;
@@ -195,9 +198,9 @@ void tt_block_large() {
 
 
 // run all tests above
-void tt_run_all() {
+void testsm2_runall() {
 	printf("-----\n");
-	printf("> running tests...\n");
+	printf("> running Method2 tests...\n");
 
 	// vector<pair<string, void(*)()>> tests = {
 	// 	{ "tt_struct", &tt_struct },

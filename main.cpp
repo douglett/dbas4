@@ -8,6 +8,7 @@
 #include "outputb.hpp"
 #include "method2.hpp"
 #include "testsm2.hpp"
+#include "testsob.hpp"
 #include "runtime1.hpp"
 
 using namespace std;
@@ -23,7 +24,8 @@ Method2  meth = { inp, outp };
 int main() {
 	printf("hello world\n");
 	// run all tests
-	tt_run_all();
+	// testsm2_runall();
+	testsob_runall();
 	// tt_spacing();
 	outp.show();
 
