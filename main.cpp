@@ -28,5 +28,7 @@ int main() {
 	// testsm2_runall();
 	// testsob_runall();
 	// outp.show();
-	ttr_function();
+
+	// ttr_function();
+	ttr_text();
 }

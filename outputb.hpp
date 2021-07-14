@@ -316,17 +316,17 @@ struct OutputB : Output {
 
 	void show() {
 		// program control data
-		printf(":structs:      $%d\n", structs.size());
+		printf(":struct:       $%d\n", structs.size());
 		for (int i = 0; i < structs.size(); i++) {
 			printf("  %s\n", structs[i].id.c_str());
 			for (const auto& d : structs[i].members)
 				printf("\t%s %s %s\n", d.type.c_str(), d.id.c_str(), (d.isarray ? "[]" : ""));
 		}
-		printf(":dims:         $%d\n", dims.size());
+		printf(":dim:          $%d\n", dims.size());
 		for (int i = 0; i < dims.size(); i++) {
 			printf("  $%d  %s %s %s\n", i, dims[i].type.c_str(), dims[i].id.c_str(), (dims[i].isarray ? "[]" : ""));
 		}
-		printf(":functions:    $%d\n", functions.size());
+		printf(":function:     $%d\n", functions.size());
 		for (int i = 0; i < functions.size(); i++) {
 			printf("  %s\n", functions[i].id.c_str());
 			for (const auto& d : functions[i].args)
@@ -340,7 +340,7 @@ struct OutputB : Output {
 
 
 		// statements
-		printf(":prints:       $%d\n", prints.size());
+		printf(":print:        $%d\n", prints.size());
 		for (int i = 0; i < prints.size(); i++) {
 			// printf("  $%d  ", i);
 			// for (const auto& st : prints[i].list)
@@ -350,11 +350,11 @@ struct OutputB : Output {
 			for (const auto& st : prints[i].list)
 				printf("\t%s $%d\n", st.type.c_str(), st.id);
 		}
-		printf(":inputs:       $%d\n", inputs.size());
+		printf(":input:        $%d\n", inputs.size());
 		for (int i = 0; i < inputs.size(); i++) {
 			printf("  $%d \tprompt $%d, varpath $%d\n", i, inputs[i].prompt, inputs[i].varpath);
 		}
-		printf(":ifs:          $%d\n", ifs.size());
+		printf(":if:           $%d\n", ifs.size());
 		for (int i = 0; i < ifs.size(); i++) {
 			// printf("  $%d  ", i);
 			// for (const auto& it : ifs[i].ifthens)
@@ -364,15 +364,15 @@ struct OutputB : Output {
 			for (const auto& it : ifs[i].ifthens)
 				printf("\tcond $%d, block $%d\n", it.cond, it.block);
 		}
-		printf(":whiles:       $%d\n", whiles.size());
+		printf(":while:        $%d\n", whiles.size());
 		for (int i = 0; i < whiles.size(); i++) {
 			printf("  $%d \tcond $%d, block $%d\n", i, whiles[i].cond, whiles[i].block);
 		}
-		printf(":returns:      $%d\n", returns.size());
+		printf(":return:       $%d\n", returns.size());
 		for (int i = 0; i < returns.size(); i++) {
 			printf("  $%d \texpr $%d\n", i, returns[i].expression);
 		}
-		printf(":calls:        $%d\n", calls.size());
+		printf(":call:         $%d\n", calls.size());
 		for (int i = 0; i < calls.size(); i++) {
 			// printf("  $%d  %s  ( ", i, calls[i].id.c_str());
 			// for (const auto& a : calls[i].args)
@@ -382,18 +382,18 @@ struct OutputB : Output {
 			for (const auto& a : calls[i].args)
 				printf("\texpr $%d\n", a);
 		}
-		printf(":sets:         $%d\n", sets.size());
+		printf(":set:          $%d\n", sets.size());
 		for (int i = 0; i < sets.size(); i++) {
 			printf("  $%d \tvarpath_dest $%d, varpath_source $%d\n", i, sets[i].varpath_dest, sets[i].varpath_source);
 		}
-		printf(":lets:         $%d\n", lets.size());
+		printf(":let:          $%d\n", lets.size());
 		for (int i = 0; i < lets.size(); i++) {
 			printf("  $%d \tvarpath $%d, expr $%d\n", i, lets[i].varpath, lets[i].expression);
 		}
 
 
 		// statement blocks
-		printf(":blocks:       $%d\n", blocks.size());
+		printf(":block:        $%d\n", blocks.size());
 		for (int i = 0; i < blocks.size(); i++) {
 			printf("  $%d\n", i);
 			for (const auto& s : blocks[i].stmts)
@@ -402,21 +402,21 @@ struct OutputB : Output {
 
 
 		// data
-		printf(":varpaths:     $%d\n", varpaths.size());
+		printf(":varpath:      $%d\n", varpaths.size());
 		for (int i = 0; i < varpaths.size(); i++) {
 			printf("  $%d \t", i);
 			for (const auto& l : varpaths[i].list)
 				printf("%s  ", l.c_str());
 			printf("\n");
 		}
-		printf(":expressions:  $%d\n", expressions.size());
+		printf(":expression:   $%d\n", expressions.size());
 		for (int i = 0; i < expressions.size(); i++) {
 			printf("  $%d \t", i);
 			for (const auto& l : expressions[i].list)
 				printf("%s,  ", l.c_str());
 			printf("\n");
 		}
-		printf(":literals:     $%d\n", literals.size());
+		printf(":literal:      $%d\n", literals.size());
 		for (int i = 0; i < literals.size(); i++) {
 			printf("  $%d \t\"%s\"\n", i, literals[i].c_str());
 		}
