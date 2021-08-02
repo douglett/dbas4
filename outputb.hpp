@@ -118,7 +118,7 @@ struct OutputB : Output {
 	vector<wb_expression>    expressions;
 	vector<string>           literals;
 
-	int warn_flag = 0;
+	int warn_flag = 1;
 
 	PSTATE_T curstate()  { return state.size() ? state.back().pstate : PS_NONE; }
 	int      curid()     { return state.size() ? state.back().id     : -1; }
@@ -131,7 +131,9 @@ struct OutputB : Output {
 
 
 	int clear() {
+		int wf = warn_flag;  // preserve flags
 		*this = OutputB();
+		warn_flag = wf;
 		return 1;
 	}
 

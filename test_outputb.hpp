@@ -11,7 +11,7 @@ struct TestOutputB : TestFrame {
 	virtual int run_tests() {
 		int errc = 0;
 		errc += tt_redim();
-		// errc += tt_undimmed();
+		errc += tt_undimmed();
 		return errc;
 	}
 
@@ -25,30 +25,30 @@ struct TestOutputB : TestFrame {
 		});
 		try {
 			meth.ps_segment("dim");
-			return tt_err();  // no error = failure
+			// return tt_err();  // no error = failure
+			tt_err();
+			// outp.show();
+			return 0;
 		}
 		catch (ParseError e) {
 			return tt_ok();   // error = success
 		}
 	}
+
 	int tt_undimmed() {
 		tt_start("tt_undimmed");
 		outp.clear();
 		inp.load({
-			// "dim a",
 			"let a = 1",
-			// "",
+			"",
 		});
 		try {
 			// meth.ps_block();
 			meth.ps_let();
-			tt_err();  // no error = failure
-			return 1;
+			return tt_err();  // no error = failure
 		}
 		catch (ParseError e) {
-			tt_ok();   // error = success
-			throw e;
-			return 0;
+			return tt_ok();   // error = success
 		}
 	}
 };

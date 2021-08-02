@@ -18,10 +18,9 @@ struct TestFrame {
 	int  tt_err  () { printf("%sError%s.\n", TERM_RED, TERM_DEF);  return 1; }
 
 	int runall() {
-		// printf("-----\n");
+		outp.warn_flag = 0;  // switch off state warnings
 		printf(">>> running %s tests...\n", getname().c_str());
 		int errc = run_tests();
-
 		if   (errc == 0)  { printf("    %s:All tests passed.%s\n", TERM_GREEN, TERM_DEF);  return 0; }
 		else              { printf("    %s:Found %d errors.%s\n", TERM_RED, errc, TERM_DEF);  return 1; }
 	}
