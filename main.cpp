@@ -8,9 +8,9 @@
 #include "outputb.hpp"
 #include "method2.hpp"
 #include "runtime1.hpp"
-#include "testsm2.hpp"
-#include "testsob.hpp"
-#include "testsr1.hpp"
+#include "test_method2.hpp"
+#include "test_outputb.hpp"
+#include "test_runtime1.hpp"
 
 using namespace std;
 
@@ -25,10 +25,10 @@ Method2  meth = { inp, outp };
 int main() {
 	printf("hello world\n");
 	// run all tests
-	// testsm2_runall();
-	// testsob_runall();
-	// outp.show();
-
-	ttr_function();
-	// ttr_text();
+	TestMethod2 tm2;
+	tm2.runall();
+	TestOutputB tob;
+	tob.runall();
+	TestRuntime1 tr1;
+	tr1.runall();
 }
