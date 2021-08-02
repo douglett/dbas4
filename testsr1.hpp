@@ -29,17 +29,18 @@ void ttr_function() {
 	run.r_func("foo");
 }
 
-void ttr_text() {
-	outp.clear();
-	inp.load({
-		"function foo()",
-		"	prints a, \"hello world \", 101",
-		"end function",
-		"",
-	});
-	meth.ps_function();
-	outp.show();
-	printf("-----\n");
-	printf("<running>\n");
-	// run.r_func("foo");
-}
+// void ttr_text() {
+// 	outp.clear();
+// 	inp.load({
+// 		"function foo()",
+// 		"	prints a, \"hello world \", 101",
+// 		// "	let b = 1",
+// 		"end function",
+// 		"",
+// 	});
+// 	meth.ps_function();
+// 	outp.show();
+// 	printf("-----\n");
+// 	printf("<running>\n");
+// 	// run.r_func("foo");
+// }

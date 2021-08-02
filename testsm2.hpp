@@ -7,13 +7,17 @@ extern Input    inp;
 extern OutputB  outp;
 extern Method2  meth;
 
+const char 
+	*TERM_DEF = "\033[0m",
+	*TERM_RED = "\033[31m",
+	*TERM_GREEN = "\033[32m";
 
-void tt_start(const string& name) { printf("Running test [%s] ... ", name.c_str()); }
-void tt_ok   () { printf("OK.\n"); }
-void tt_err  () { printf("Error.\n"); }
+void tt_start(const string& name) { printf("  Running test [%s] ... ", name.c_str()); }
+void tt_ok   () { printf("%sOK%s.\n", TERM_GREEN, TERM_DEF); }
+void tt_err  () { printf("%sError%s.\n", TERM_RED, TERM_DEF); }
 
 
-void tt_struct() {
+int tt_struct() {
 	tt_start("tt_struct");
 	outp.clear();
 	inp.load({
@@ -26,8 +30,9 @@ void tt_struct() {
 	});
 	meth.ps_struct();
 	tt_ok();
+	return 0;
 }
-void tt_struct2() {
+int tt_struct2() {
 	tt_start("tt_struct2");
 	outp.clear();
 	inp.load({
@@ -43,8 +48,9 @@ void tt_struct2() {
 	});
 	meth.ps_segment("struct");
 	tt_ok();
+	return 0;
 }
-void tt_globals() {
+int tt_globals() {
 	tt_start("tt_globals");
 	outp.clear();
 	inp.load({
@@ -55,8 +61,9 @@ void tt_globals() {
 	});
 	meth.ps_segment("dim");
 	tt_ok();
+	return 0;
 }
-void tt_function() {
+int tt_function() {
 	tt_start("tt_function");
 	outp.clear();
 	inp.load({
@@ -66,8 +73,9 @@ void tt_function() {
 	});
 	meth.ps_function();
 	tt_ok();
+	return 0;
 }
-void tt_function2() {
+int tt_function2() {
 	tt_start("tt_function2");
 	outp.clear();
 	inp.load({
@@ -77,8 +85,9 @@ void tt_function2() {
 	});
 	meth.ps_function();
 	tt_ok();
+	return 0;
 }
-void tt_function3() {
+int tt_function3() {
 	tt_start("tt_function3");
 	outp.clear();
 	inp.load({
@@ -89,8 +98,9 @@ void tt_function3() {
 	});
 	meth.ps_function();
 	tt_ok();
+	return 0;
 }
-void tt_expression() {
+int tt_expression() {
 	tt_start("tt_expression");
 	outp.clear();
 	inp.load({
@@ -98,8 +108,9 @@ void tt_expression() {
 	});
 	meth.ps_expression();
 	tt_ok();
+	return 0;
 }
-void tt_expression2() {
+int tt_expression2() {
 	tt_start("tt_expression2");
 	outp.clear();
 	inp.load({
@@ -111,8 +122,9 @@ void tt_expression2() {
 	meth.ps_expression();
 	meth.ps_expression();
 	tt_ok();
+	return 0;
 }
-void tt_if() {
+int tt_if() {
 	tt_start("tt_if");
 	outp.clear();
 	inp.load({
@@ -123,8 +135,9 @@ void tt_if() {
 	});
 	meth.ps_if();
 	tt_ok();
+	return 0;
 }
-void tt_if2() {
+int tt_if2() {
 	tt_start("tt_if2");
 	outp.clear();
 	inp.load({
@@ -139,8 +152,9 @@ void tt_if2() {
 	});
 	meth.ps_if();
 	tt_ok();
+	return 0;
 }
-void tt_spacing() {
+int tt_spacing() {
 	tt_start("tt_spacing");
 	outp.clear();
 	inp.load({
@@ -150,12 +164,14 @@ void tt_spacing() {
 	try {
 		meth.ps_print();
 		tt_err();  // no error = failure
+		return 1;
 	}
 	catch (ParseError e) {
 		tt_ok();   // error = success
+		return 0;
 	}
 }
-void tt_variables() {
+int tt_variables() {
 	tt_start("tt_variables");
 	outp.clear();
 	inp.load({
@@ -163,9 +179,10 @@ void tt_variables() {
 	});
 	meth.ps_varpath();
 	tt_ok();
+	return 0;
 }
 
-void tt_block_large() {
+int tt_block_large() {
 	tt_start("tt_block_large");
 	outp.clear();
 	inp.load({
@@ -193,6 +210,7 @@ void tt_block_large() {
 	});
 	meth.ps_block();
 	tt_ok();
+	return 0;
 }
 
 
@@ -202,25 +220,24 @@ void testsm2_runall() {
 	printf("-----\n");
 	printf("> running Method2 tests...\n");
 
-	// vector<pair<string, void(*)()>> tests = {
-	// 	{ "tt_struct", &tt_struct },
-	// };
+	int errc = 0;
 	
-	tt_struct();
-	tt_struct2();
-	tt_globals();
-	tt_function();
-	tt_function2();
-	tt_function3();
-	tt_expression();
-	tt_expression2();
-	tt_if();
-	tt_if2();
-	tt_spacing();
-	tt_variables();
-	tt_block_large();
+	errc += tt_struct();
+	errc += tt_struct2();
+	errc += tt_globals();
+	errc += tt_function();
+	errc += tt_function2();
+	errc += tt_function3();
+	errc += tt_expression();
+	errc += tt_expression2();
+	errc += tt_if();
+	errc += tt_if2();
+	errc += tt_spacing();
+	errc += tt_variables();
+	errc += tt_block_large();
 	// outp.show();
 
-	printf("> tests OK.\n");
+	if   (errc == 0)  printf("> %sAll tests passed.%s\n", TERM_GREEN, TERM_DEF);
+	else              printf("> %sFound %d errors.%s\n", TERM_RED, errc, TERM_DEF);
 	printf("-----\n");
 }

@@ -118,6 +118,7 @@ struct OutputB : Output {
 	vector<wb_expression>    expressions;
 	vector<string>           literals;
 
+	int warn_flag = 0;
 
 	PSTATE_T curstate()  { return state.size() ? state.back().pstate : PS_NONE; }
 	int      curid()     { return state.size() ? state.back().id     : -1; }
@@ -145,7 +146,7 @@ struct OutputB : Output {
 	void dim_short(const string& type, const string& id, bool isarray) {
 		if      (curstate() == PS_STRUCT)    structs.at(curid()).members.push_back({ type, id, isarray });
 		else if (curstate() == PS_FUNCTION)  functions.at(curid()).args.push_back({ type, id, isarray });
-		else    statewarn(),  Output::dim_short(type, id, isarray);
+		else if (warn_flag)                  statewarn(),  Output::dim_short(type, id, isarray);
 	}
 	void dim_start(const string& type, const string& id) {
 		dims.push_back({ type, id, false, -1, -1 });
@@ -175,13 +176,13 @@ struct OutputB : Output {
 		if      (curstate() == PS_FUNCTION)    functions.at(curid()).block = idx;
 		else if (curstate() == PS_STMT_IF)     ifs.at(curid()).ifthens.back().block = idx;
 		else if (curstate() == PS_STMT_WHILE)  whiles.at(curid()).block = idx;
-		else    statewarn(),  Output::block_start();
+		else if (warn_flag)                    statewarn(),  Output::block_start();
 		state.push_back({ PS_STMT_BLOCK, idx });
 	}
 	void _block_append_stmt(const string& type, int id) {
 		// helper - append statement to block.
-		if    (curstate() == PS_STMT_BLOCK)  blocks.at(curid()).stmts.push_back({ type, id });
-		else  statewarn(),  printf("(%s append)\n", type.c_str());
+		if      (curstate() == PS_STMT_BLOCK)  blocks.at(curid()).stmts.push_back({ type, id });
+		else if (warn_flag)                    statewarn(),  printf("(%s append)\n", type.c_str());
 	}
 	void block_end() {
 		state.pop_back();
@@ -258,7 +259,7 @@ struct OutputB : Output {
 		int idx = _string_getindex(lit);
 		if      (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back({ "lit", idx });
 		else if (curstate() == PS_STMT_INPUT)   inputs.at(curid()).prompt = idx;
-		else    statewarn(),  Output::string_literal(lit);
+		else if (warn_flag)                     statewarn(),  Output::string_literal(lit);
 	}
 	int _string_getindex(const string& lit) {
 		// helper - de-dup literals
@@ -278,7 +279,7 @@ struct OutputB : Output {
 		else if (curstate() == PS_STMT_CALL)    calls.at(curid()).args.push_back(idx);
 		else if (curstate() == PS_VARPATH)      varpaths.at(curid()).list.push_back("expr $" + to_string(idx));
 		else if (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back({ "expr", idx });
-		else    statewarn(),  Output::ex_start();
+		else if (warn_flag)                     statewarn(),  Output::ex_start();
 		state.push_back({ PS_EXPRESSION, idx });
 	}
 	void ex_push(const string& ex) {
@@ -298,7 +299,7 @@ struct OutputB : Output {
 			if      (sets.at(curid()).varpath_dest == -1) sets.at(curid()).varpath_dest = idx;
 			else if (sets.at(curid()).varpath_source == -1) sets.at(curid()).varpath_source = idx;
 		}
-		else    statewarn(),  Output::varpath_start(id);
+		else if (warn_flag)                     statewarn(),  Output::varpath_start(id);
 		state.push_back({ PS_VARPATH, idx });
 	}
 	void varpath_push(const string& path) {
