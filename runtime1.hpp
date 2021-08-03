@@ -1,13 +1,12 @@
 #pragma once
 #include <map>
-
-
-// extern Input    inp;
-extern OutputB  outp;
-// extern Method2  meth;
+#include "helpers.hpp"
+#include "outputb.hpp"
 
 
 struct Runtime1 {
+	OutputB& outp;
+	
 	string ctrl;
 	map<string, i32>  dims;
 	vector<i32>       stack;
@@ -18,8 +17,10 @@ struct Runtime1 {
 
 
 	void error(int err=1) {
-		fprintf(stderr, "runtime error: %d\n", err);
-		exit(1);
+		WizError e;
+			e.msg = "runtime error: " + to_string(err);
+			e.buildmsg();
+		throw e;
 	}
 
 
@@ -57,7 +58,14 @@ struct Runtime1 {
 				printf("\n");
 			}
 
-			// else if (stmt.type == "input") {
+			else if (stmt.type == "input") {
+				const auto& inp = outp.inputs.at(stmt.id);
+				cout << outp.literals.at(inp.prompt);
+				string s;
+				getline(cin, s);
+				// inp.varpath
+
+			}
 
 			else if (stmt.type == "if") {
 				const auto& ifx = outp.ifs.at(stmt.id);
@@ -77,7 +85,12 @@ struct Runtime1 {
 				ctrl = "return";
 			}
 
-			// else if (stmt.type == "call") {
+			else if (stmt.type == "call") {
+				const auto& call = outp.calls.at(stmt.id);
+				if (call.args.size() > 0) error();
+				r_func(call.id);
+			}
+
 			// else if (stmt.type == "set") {
 
 			else if (stmt.type == "let") {

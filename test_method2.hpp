@@ -176,7 +176,7 @@ struct TestMethod2 : TestFrame {
 			tt_err();  // no error = failure
 			return 1;
 		}
-		catch (ParseError e) {
+		catch (WizError e) {
 			tt_ok();   // error = success
 			return 0;
 		}

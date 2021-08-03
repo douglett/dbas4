@@ -30,7 +30,7 @@ struct TestOutputB : TestFrame {
 			// outp.show();
 			return 0;
 		}
-		catch (ParseError e) {
+		catch (WizError e) {
 			return tt_ok();   // error = success
 		}
 	}
@@ -47,7 +47,7 @@ struct TestOutputB : TestFrame {
 			meth.ps_let();
 			return tt_err();  // no error = failure
 		}
-		catch (ParseError e) {
+		catch (WizError e) {
 			return tt_ok();   // error = success
 		}
 	}

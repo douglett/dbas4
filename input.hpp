@@ -1,17 +1,14 @@
 #pragma once
 #include <fstream>
 #include <sstream>
+#include "helpers.hpp"
 
 
-struct ParseError : std::exception {
+struct WizParseError : WizError {
 	int errorcode = 0;
 	int lineindex = -1;
-	string msg = "ParseError: ...";
-	void buildmsg() {
+	virtual void buildmsg() {
 		msg = "ParseError: error code " + to_string(errorcode) + ", on line " + to_string(lineindex+1);
-	}
-	virtual const char* what() const noexcept {
-		return msg.c_str();
 	}
 };
 
@@ -190,14 +187,10 @@ struct Input {
 
 	// error recording
 	int error(int errorcode) {
-		// fprintf(stderr, "error code: %d\n", errorcode);
-		// fprintf(stderr, "	on line: %d\n", lineindex()+1);
-		// exit(1);
-		// return 0;
-		ParseError p;
-		p.errorcode = errorcode;
-		p.lineindex = lineindex();
-		p.buildmsg();
+		WizParseError p;
+			p.errorcode = errorcode;
+			p.lineindex = lineindex();
+			p.buildmsg();
 		throw p;
 	}
 	int lineindex() {

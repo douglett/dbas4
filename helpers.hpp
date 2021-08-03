@@ -14,6 +14,14 @@ using namespace std;  // watch it...
 typedef  int32_t  i32;
 
 
+// general errors
+struct WizError : std::exception {
+	string msg = "WizardBasic error: unknown error";
+	virtual void buildmsg() { }
+	virtual const char* what() const noexcept { return msg.c_str(); }
+};
+
+
 // generally useful methods
 struct Helpers {
 	static int is_alpha    (char c) { return (c>='A' && c<='Z') || (c>='a' && c<='z') || c=='_'; }

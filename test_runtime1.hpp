@@ -6,7 +6,7 @@
 
 
 struct TestRuntime1 : TestFrame {
-	Runtime1 run1;
+	Runtime1 run1 = { outp };
 
 	virtual string getname()   { return "TestRuntime1"; }
 
