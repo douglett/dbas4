@@ -4,25 +4,37 @@
 #include "outputb.hpp"
 
 
+enum RUN_ERROR {
+	RERR_ERROR = 1,
+	RERR_TYPE,
+};
+
+
 struct Runtime1 {
 	OutputB& outp;
 	
 	string ctrl;
-	map<string, i32>  dims;
-	vector<i32>       stack;
+	map<string, i32>     dims;
+	vector<i32>          stack;
+	vector<vector<i32>>  heap;
 
 
 	i32  pop()       { i32 r = stack.at(stack.size()-1);  stack.pop_back();  return r; }
 	void push(i32 v) { stack.push_back(v); }
 
 
-	void error(int err=1) {
+	void error(RUN_ERROR err = RERR_ERROR) {
 		WizError e;
 			e.msg = "runtime error: " + to_string(err);
 			e.buildmsg();
 		throw e;
 	}
 
+
+	void init() {
+		heap = { {} };  // assign heap 0 (null)
+		// init global dims here
+	}
 
 	void r_func(const string& fname) {
 		int i = 0;
@@ -38,8 +50,17 @@ struct Runtime1 {
 	
 	void r_dim(i32 idx) {
 		const auto& dim = outp.dims.at(idx);
-		if    (dim.expression == -1)  dims[dim.id] = 0;
-		else  r_expression(dim.expression),  dims[dim.id] = pop();
+		printf("dim :: %s %s\n", dim.type.c_str(), dim.id.c_str());
+
+		if (dim.type == "int") {
+			if    (dim.expression == -1)  dims[dim.id] = 0;
+			else  r_expression(dim.expression),  dims[dim.id] = pop();
+		}
+		else if (dim.type == "string") {
+			heap.push_back({});
+			dims[dim.id] = heap.size()-1;
+		}
+		else  error(RERR_TYPE);
 	}
 
 	void r_block(i32 idx) {
@@ -60,11 +81,15 @@ struct Runtime1 {
 
 			else if (stmt.type == "input") {
 				const auto& inp = outp.inputs.at(stmt.id);
-				cout << outp.literals.at(inp.prompt);
-				string s;
-				getline(cin, s);
-				// inp.varpath
-
+				cout << outp.literals.at(inp.prompt);   // show command prompt
+				string input;
+				getline(cin, input);                    // read from std-in
+				r_varpath_get(inp.varpath);             // calculate heap index
+				i32 heap_index = pop();
+				auto& mem = heap.at(heap_index);        // get heap
+				mem.resize(input.size());               // resize
+				for (int i=0; i<input.size(); i++)      // copy string
+					mem[i] = input[i];
 			}
 
 			else if (stmt.type == "if") {
