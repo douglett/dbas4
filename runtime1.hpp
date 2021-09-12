@@ -7,6 +7,8 @@
 enum RUN_ERROR {
 	RERR_ERROR = 1,
 	RERR_TYPE,
+	RERR_NULL,
+	RERR_OUT_OF_RANGE,
 };
 
 
@@ -36,13 +38,6 @@ struct Runtime1 {
 		// init global dims here
 	}
 
-	string heap_to_string(i32 heap_index) {
-		string s;
-		auto& mem = heap.at(heap_index);        // get heap
-		for (int i = 0; i < mem.size() && mem.at(i) != 0; i++)
-			s.push_back(mem.at(i));
-		return s;
-	}
 
 	void r_func(const string& fname) {
 		int i = 0;
@@ -95,7 +90,7 @@ struct Runtime1 {
 				getline(cin, input);                    // read from std-in
 				r_varpath_get(inp.varpath);             // calculate heap index
 				i32 heap_index = pop();
-				auto& mem = heap.at(heap_index);        // get heap
+				auto& mem = heap_get(heap_index);       // get heap reference
 				mem.resize(input.size());               // resize
 				for (int i=0; i<input.size(); i++)      // copy string
 					mem[i] = input[i];
@@ -160,5 +155,25 @@ struct Runtime1 {
 			else if (inst.at(0) == "div")      v = pop(),  push( pop() / v );
 			else    error();
 		}
+	}
+
+
+
+	// Helpers
+
+	// get reference to heap memory, with runtime checks
+	vector<i32>& heap_get(i32 heap_index) {
+		if (heap_index == 0)                              error(RERR_NULL);
+		if (heap_index < 0 || heap_index >= heap.size())  error(RERR_OUT_OF_RANGE);
+		return heap.at(heap_index);
+	}
+
+	// convert heap memory as c++ string
+	string heap_to_string(i32 heap_index) {
+		string s;
+		auto& mem = heap_get(heap_index);        // get heap reference
+		for (int i = 0; i < mem.size() && mem.at(i) != 0; i++)
+			s.push_back(mem.at(i));
+		return s;
 	}
 };
