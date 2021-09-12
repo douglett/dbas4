@@ -301,6 +301,7 @@ struct OutputB : Output {
 			if      (sets.at(curid()).varpath_dest == -1) sets.at(curid()).varpath_dest = idx;
 			else if (sets.at(curid()).varpath_source == -1) sets.at(curid()).varpath_source = idx;
 		}
+		else if (curstate() == PS_STMT_PRINT)   prints.at(curid()).list.push_back({ "varpath", idx });
 		else if (warn_flag)                     statewarn(),  Output::varpath_start(id);
 		state.push_back({ PS_VARPATH, idx });
 	}

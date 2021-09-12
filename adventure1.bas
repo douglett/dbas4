@@ -9,6 +9,6 @@ function room1()
 	while 1
 		print "what do you do?"
 		input cmd
-		print "you do: ", cmd
+		print "you do: ", $cmd
 	end while
 end function

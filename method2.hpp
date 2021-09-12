@@ -92,7 +92,8 @@ struct Method2 {
 		while (true) {
 			if (inp.peek("endl"))  break;
 			if (!first)  inp.expect("',");
-			if      (inp.peek("'\""))         ps_string_literal();
+			if      (inp.peek("'\""))  ps_string_literal();
+			else if (inp.get("'$"))    ps_varpath();
 			else    ps_expression();
 			first = false;
 		}

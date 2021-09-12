@@ -36,6 +36,14 @@ struct Runtime1 {
 		// init global dims here
 	}
 
+	string heap_to_string(i32 heap_index) {
+		string s;
+		auto& mem = heap.at(heap_index);        // get heap
+		for (int i = 0; i < mem.size() && mem.at(i) != 0; i++)
+			s.push_back(mem.at(i));
+		return s;
+	}
+
 	void r_func(const string& fname) {
 		int i = 0;
 		for (i = 0; i < outp.functions.size(); i++)
@@ -73,8 +81,9 @@ struct Runtime1 {
 			else if (stmt.type == "print") {
 				const auto& print = outp.prints.at(stmt.id);
 				for (auto& arg : print.list)
-					if      (arg.type == "lit" )  printf("%s", outp.literals.at(arg.id).c_str());
-					else if (arg.type == "expr")  r_expression(arg.id),  printf("%d", pop());
+					if      (arg.type == "lit" )     printf("%s", outp.literals.at(arg.id).c_str());
+					else if (arg.type == "expr")     r_expression(arg.id),   printf("%d", pop());
+					else if (arg.type == "varpath")  r_varpath_get(arg.id),  printf("%s", heap_to_string(pop()).c_str());
 					else    error();
 				printf("\n");
 			}
