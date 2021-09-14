@@ -11,7 +11,7 @@ struct TestOutputB : TestFrame {
 	virtual int run_tests() {
 		int errc = 0;
 		errc += tt_redim();
-		errc += tt_undimmed();
+		// errc += tt_undimmed();
 		return errc;
 	}
 

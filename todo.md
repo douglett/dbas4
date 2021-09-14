@@ -1,8 +1,15 @@
 TODO:
 =====
 
-- first item in todo list
-- output-B  :: redim checks
+- output-B  :: redim checks (short)
 - output-B  :: variable existance checks
-- runtime-1 :: implement heap
+- global    :: error codes & exception management
+
+
+DONE:
+=====
+
+- output-B  :: redim checks (long)
 - runtime-1 :: dimming non integer types
+- runtime-1 :: implement heap
+- first item in todo list

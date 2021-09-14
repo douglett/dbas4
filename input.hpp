@@ -4,13 +4,13 @@
 #include "helpers.hpp"
 
 
-struct WizParseError : WizError {
-	int errorcode = 0;
-	int lineindex = -1;
-	virtual void buildmsg() {
-		msg = "ParseError: error code " + to_string(errorcode) + ", on line " + to_string(lineindex+1);
-	}
-};
+// struct WizParseError : WizError {
+// 	int errorcode = 0;
+// 	int lineindex = -1;
+// 	virtual void buildmsg() {
+// 		msg = "ParseError: error code " + to_string(errorcode) + ", on line " + to_string(lineindex+1);
+// 	}
+// };
 
 
 // ----------------------------------------
@@ -176,23 +176,22 @@ struct Input {
 		int  res = get(patterns);
 		return seek(pos), res;
 	}
-	int expect(const string& patterns, Results& r, int errorcode=1) {
-		if    (get(patterns, r)) return 1;
-		else  return error(errorcode);
-	}
-	int expect(const string& patterns, int errorcode=1) {
+	int expect(const string& patterns) {
 		Results r;
-		return expect(patterns, r, errorcode);
+		return expect(patterns, r);
 	}
-
-	// error recording
-	int error(int errorcode) {
+	int expect(const string& patterns, Results& r) {
+		if (get(patterns, r))  return 1;
 		WizParseError p;
-			p.errorcode = errorcode;
-			p.lineindex = lineindex();
+			p.error_code = WIZERR_EXPECT_TOKEN;
+			p.line_no    = lineindex();
+			p.error_text = "expected: [ " + patterns + " ]";
 			p.buildmsg();
 		throw p;
+		// return 0;
 	}
+
+	// file info
 	int lineindex() {
 		int count = 0, c = 0;
 		auto pos = tell();

@@ -28,10 +28,28 @@ enum PSTATE_T {
 
 
 // ----------------------------------------
+// Error handler
+// ----------------------------------------
+
+
+// struct WizParseOutputError : WizParseError {
+// 	// int errorcode = 0;
+// 	// int lineindex = -1;
+// 	virtual void buildmsg() {
+// 		msg = "ParseError: error code " + to_string(errorcode) + ", on line " + to_string(lineindex+1);
+// 	}
+// };
+
+
+
+// ----------------------------------------
 // Syntax holding structures
 // ----------------------------------------
 
 
+struct wb_global {
+	vector<int> dims;
+};
 struct wb_dim {
 	string type, id;
 	bool isarray;
@@ -101,6 +119,7 @@ struct OutputB : Output {
 	struct pstate { PSTATE_T pstate; int id; };
 	vector<pstate>           state;
 
+	wb_global                global;
 	vector<wb_struct>        structs;
 	vector<wb_dim>           dims;
 	vector<wb_function>      functions;
@@ -151,10 +170,31 @@ struct OutputB : Output {
 		else if (warn_flag)                  statewarn(),  Output::dim_short(type, id, isarray);
 	}
 	void dim_start(const string& type, const string& id) {
-		dims.push_back({ type, id, false, -1, -1 });
+		dims.push_back({ type, id, false, -1, -1 });     // save dim
 		int idx = dims.size() - 1;
-		if      (curstate() == PS_FUNCTION)  functions.at(curid()).dims.push_back(idx);
-		state.push_back({ PS_DIM, idx });
+		if (curstate() == PS_FUNCTION) {                 // function scope dim
+			for (int d : functions.at(curid()).dims)
+				if (dims.at(d).id == id) {
+					WizParseError e;
+						e.error_code = WIZERR_REDIM;
+						e.error_text = "redefinition of '" + id + "'";
+						e.buildmsg();
+					throw e;
+				}
+			functions.at(curid()).dims.push_back(idx);
+		}
+		else {                                           // global scope dim
+			for (int d : global.dims)
+				if (dims.at(d).id == id) {
+					WizParseError e;
+						e.error_code = WIZERR_REDIM;
+						e.error_text = "redefinition of '" + id + "'";
+						e.buildmsg();
+					throw e;
+				}
+			global.dims.push_back(idx);
+		}
+		state.push_back({ PS_DIM, idx });                // set dim scope
 	}
 	void dim_isarray(bool val) {
 		dims.at(curid()).isarray = val;
@@ -320,6 +360,11 @@ struct OutputB : Output {
 
 	void show() {
 		// program control data
+		printf(":global:       \n");
+			printf("\tdims   ");
+			for (const auto& d : global.dims)
+				printf("$%d,  ", d);
+			printf("\n");
 		printf(":struct:       $%d\n", structs.size());
 		for (int i = 0; i < structs.size(); i++) {
 			printf("  %s\n", structs[i].id.c_str());

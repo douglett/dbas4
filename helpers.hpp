@@ -14,11 +14,31 @@ using namespace std;  // watch it...
 typedef  int32_t  i32;
 
 
-// general errors
+// Errors and Exceptions
+enum WIZ_ERROR_CODE {
+	WIZERR_NONE  = 0,
+	WIZERR_ERROR = 1,
+	WIZERR_EXPECT_TOKEN,
+	WIZERR_REDIM,
+	WIZERR_LET_UNDEFINED,
+	WIZERR_SET_UNDEFINED,
+};
+
 struct WizError : std::exception {
 	string msg = "WizardBasic error: unknown error";
 	virtual void buildmsg() { }
 	virtual const char* what() const noexcept { return msg.c_str(); }
+};
+
+struct WizParseError : WizError {
+	WIZ_ERROR_CODE error_code = WIZERR_NONE;
+	int line_no = -1;
+	string error_text;
+	virtual void buildmsg() {
+		msg = string("ParseError")
+			+ " :: error code " + to_string(error_code) + ", on line " + to_string(line_no+1)
+			+ " :: " + error_text;
+	}
 };
 
 

@@ -21,7 +21,7 @@ OutputB  outp;
 Method2  meth = { inp, outp };
 
 
-void dotests() {
+int dotests() {
 	// run all tests
 	TestMethod2 tm2;
 	tm2.runall();
@@ -29,12 +29,14 @@ void dotests() {
 	tob.runall();
 	TestRuntime1 tr1;
 	tr1.runall();
+	return 0;
 }
 
 
 int main() {
 	printf("hello world\n");
-	// dotests();
+	return dotests();
+
 
 	// test adventure code
 	inp.open("adventure1.bas");
