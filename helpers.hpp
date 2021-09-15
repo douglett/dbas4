@@ -24,6 +24,16 @@ enum WIZ_ERROR_CODE {
 	WIZERR_SET_UNDEFINED,
 };
 
+string wiz_error_generate(WIZ_ERROR_CODE err, const string& info) {
+	switch (err) {
+	case WIZERR_EXPECT_TOKEN:  return "syntax error; expected [" + info + "]";
+	case WIZERR_REDIM:         return "redefinition of '" + info + "'";
+	case WIZERR_NONE:
+	case WIZERR_ERROR: 
+	default:                   return "unknown error " + to_string(err);
+	}
+}
+
 struct WizError : std::exception {
 	string msg = "WizardBasic error: unknown error";
 	virtual void buildmsg() { }
@@ -31,13 +41,20 @@ struct WizError : std::exception {
 };
 
 struct WizParseError : WizError {
-	WIZ_ERROR_CODE error_code = WIZERR_NONE;
-	int line_no = -1;
-	string error_text;
+	WIZ_ERROR_CODE  error_code = WIZERR_NONE;
+	string          error_text;
+	int             line_no = -1;
 	virtual void buildmsg() {
 		msg = string("ParseError")
 			+ " :: error code " + to_string(error_code) + ", on line " + to_string(line_no+1)
 			+ " :: " + error_text;
+	}
+	WizParseError() { }
+	WizParseError(WIZ_ERROR_CODE err, const string& info, int lno=-1) {
+		error_code = err;
+		error_text = wiz_error_generate(err, info);
+		line_no    = lno;
+		buildmsg();
 	}
 };
 

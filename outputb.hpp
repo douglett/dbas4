@@ -28,21 +28,6 @@ enum PSTATE_T {
 
 
 // ----------------------------------------
-// Error handler
-// ----------------------------------------
-
-
-// struct WizParseOutputError : WizParseError {
-// 	// int errorcode = 0;
-// 	// int lineindex = -1;
-// 	virtual void buildmsg() {
-// 		msg = "ParseError: error code " + to_string(errorcode) + ", on line " + to_string(lineindex+1);
-// 	}
-// };
-
-
-
-// ----------------------------------------
 // Syntax holding structures
 // ----------------------------------------
 
@@ -165,36 +150,33 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void dim_short(const string& type, const string& id, bool isarray) {
-		if      (curstate() == PS_STRUCT)    structs.at(curid()).members.push_back({ type, id, isarray });
-		else if (curstate() == PS_FUNCTION)  functions.at(curid()).args.push_back({ type, id, isarray });
-		else if (warn_flag)                  statewarn(),  Output::dim_short(type, id, isarray);
+		if      (curstate() == PS_STRUCT) {                                // dim-short as struct member
+			for (const auto& d : structs.at(curid()).members)
+				if (d.id == id)  throw WizParseError(WIZERR_REDIM, id);
+			structs.at(curid()).members.push_back({ type, id, isarray });
+		}
+		else if (curstate() == PS_FUNCTION) {                              // dim-short as function argument
+			for (const auto& d : functions.at(curid()).args)
+				if (d.id == id)  throw WizParseError(WIZERR_REDIM, id);
+			functions.at(curid()).args.push_back({ type, id, isarray });
+		}
+		else if (warn_flag)                                                // unknown context
+			statewarn(),  Output::dim_short(type, id, isarray);
 	}
 	void dim_start(const string& type, const string& id) {
-		dims.push_back({ type, id, false, -1, -1 });     // save dim
+		dims.push_back({ type, id, false, -1, -1 });                       // save dim
 		int idx = dims.size() - 1;
-		if (curstate() == PS_FUNCTION) {                 // function scope dim
+		if (curstate() == PS_FUNCTION) {                                   // function scope dim
 			for (int d : functions.at(curid()).dims)
-				if (dims.at(d).id == id) {
-					WizParseError e;
-						e.error_code = WIZERR_REDIM;
-						e.error_text = "redefinition of '" + id + "'";
-						e.buildmsg();
-					throw e;
-				}
+				if (dims.at(d).id == id)  throw WizParseError(WIZERR_REDIM, id);
 			functions.at(curid()).dims.push_back(idx);
 		}
-		else {                                           // global scope dim
+		else {                                                             // global scope dim
 			for (int d : global.dims)
-				if (dims.at(d).id == id) {
-					WizParseError e;
-						e.error_code = WIZERR_REDIM;
-						e.error_text = "redefinition of '" + id + "'";
-						e.buildmsg();
-					throw e;
-				}
+				if (dims.at(d).id == id)  throw WizParseError(WIZERR_REDIM, id);
 			global.dims.push_back(idx);
 		}
-		state.push_back({ PS_DIM, idx });                // set dim scope
+		state.push_back({ PS_DIM, idx });
 	}
 	void dim_isarray(bool val) {
 		dims.at(curid()).isarray = val;

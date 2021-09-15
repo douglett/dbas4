@@ -13,7 +13,7 @@ struct TestFrame {
 	OutputB  outp;
 	Method2  meth = { inp, outp };
 
-	void tt_start(const string& name) { printf("    Running test [%s] ... ", name.c_str()); }
+	void tt_start(const string& name) { printf("    Running test [%s] ... ", name.c_str());  inp.close();  outp.clear(); }
 	int  tt_ok   () { printf("%sOK%s.\n", TERM_GREEN, TERM_DEF);  return 0; }
 	int  tt_err  () { printf("%sError%s.\n", TERM_RED, TERM_DEF);  return 1; }
 

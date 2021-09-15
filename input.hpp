@@ -182,13 +182,7 @@ struct Input {
 	}
 	int expect(const string& patterns, Results& r) {
 		if (get(patterns, r))  return 1;
-		WizParseError p;
-			p.error_code = WIZERR_EXPECT_TOKEN;
-			p.line_no    = lineindex();
-			p.error_text = "expected: [ " + patterns + " ]";
-			p.buildmsg();
-		throw p;
-		// return 0;
+		throw WizParseError(WIZERR_EXPECT_TOKEN, patterns, lineindex());
 	}
 
 	// file info
