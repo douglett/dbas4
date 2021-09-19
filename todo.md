@@ -11,6 +11,7 @@ TODO:
 DONE:
 =====
 
+- method-2  :: line comments!
 - output-B  :: redim checks (short)
 - output-B  :: redim checks (long)
 - runtime-1 :: dimming non integer types

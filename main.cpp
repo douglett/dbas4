@@ -35,7 +35,7 @@ int dotests() {
 
 int main() {
 	printf("hello world\n");
-	return dotests();
+	// return dotests();
 
 
 	// test adventure code

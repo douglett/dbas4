@@ -56,6 +56,12 @@ struct Pattern {
 		else if (Helpers::is_alphanum(str.back()) && !Helpers::is_alphanum(input.peek()))  return 1;
 		else    return 0;
 	}
+	int clearcomments(iostream& input) {
+		if (input.peek() == '#')  // handle line comments
+			while (input.peek()!='\n' && input.peek()!=EOF)
+				input.get();
+		return 1;
+	}
 	int match(iostream& input, string& result) {
 		result = "";
 		switch (type) {
@@ -74,12 +80,10 @@ struct Pattern {
 				if (!Helpers::is_alpha(input.peek()))  return 0;
 				result += input.get();
 				while (Helpers::is_alphanum(input.peek()))  result += input.get();
-				// return 1;
 				return wordbreak(input, result);
 			}
 			else if (pattern == "integer") {
 				while (Helpers::is_num(input.peek()))  result += input.get();
-				// return result.length() > 0;
 				return result.length() > 0 && wordbreak(input, result);
 			}
 			else if (pattern == "string_literal") {
@@ -89,15 +93,14 @@ struct Pattern {
 					result += input.get();
 				if (input.peek() != '"')  return 0;
 				input.get();
-				// return 1;
 				return wordbreak(input, result);
 			}
 			else if (pattern == "endl")
-				return input.peek()=='\n' ? (input.get(), 1) : 0;
+				return clearcomments(input) && input.peek()=='\n' ? (input.get(), 1) : 0;  // after line comments, expect endl
 			else if (pattern == "eof")
 				return input.peek()==EOF ? (input.get(), 1) : 0;
 			else if (pattern == "endall")
-				return input.peek()=='\n' || input.peek()==EOF ? (input.get(), 1) : 0;
+				return (clearcomments(input) && input.peek()=='\n') || input.peek()==EOF ? (input.get(), 1) : 0;
 			fprintf(stderr, "Pattern::match > unknown pattern [%s]\n", pattern.c_str());
 			exit(1);
 		}

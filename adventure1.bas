@@ -1,5 +1,12 @@
+# test comment
+
 function main()
-	call room1()
+	call room1() #fart
+end function
+
+function strcmp(string s1, string s2)
+	dim i
+	dim l
 end function
 
 function room1()
