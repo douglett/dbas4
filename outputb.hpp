@@ -32,6 +32,9 @@ enum PSTATE_T {
 // ----------------------------------------
 
 
+struct wb_dsym {
+	int lno;
+};
 struct wb_global {
 	vector<int> dims;
 };
@@ -39,6 +42,7 @@ struct wb_dim {
 	string type, id;
 	bool isarray;
 	int  expression, varpath;
+	wb_dsym dsym;
 };
 struct wb_dimshort {
 	string type, id;
@@ -47,12 +51,14 @@ struct wb_dimshort {
 struct wb_struct {
 	string id;
 	vector<wb_dimshort> members;
+	wb_dsym dsym;
 };
 struct wb_function {
 	string id;
 	vector<wb_dimshort> args;
 	vector<int> dims;
 	int block;
+	wb_dsym dsym;
 };
 struct wb_stmt_block {
 	struct stmt { string type; int id; };
@@ -69,9 +75,11 @@ struct wb_stmt_input {
 struct wb_stmt_if {
 	struct ifthen { int cond; int block; };
 	vector<ifthen> ifthens;
+	wb_dsym dsym;
 };
 struct wb_stmt_while {
 	int cond, block;
+	wb_dsym dsym;
 };
 struct wb_stmt_return {
 	int expression;
@@ -103,6 +111,7 @@ struct wb_expression {
 struct OutputB : Output {
 	struct pstate { PSTATE_T pstate; int id; };
 	vector<pstate>           state;
+	wb_dsym                  dsym={0};
 
 	wb_global                global;
 	vector<wb_struct>        structs;
@@ -143,39 +152,46 @@ struct OutputB : Output {
 
 
 	void struct_start(const string& id) {
-		structs.push_back({ id });
+		structs.push_back({ id, {}, dsym });
 		state.push_back({ PS_STRUCT, int(structs.size()-1) });
 	}
 	void struct_end() {
 		state.pop_back();
 	}
 	void dim_short(const string& type, const string& id, bool isarray) {
-		if      (curstate() == PS_STRUCT) {                                // dim-short as struct member
-			for (const auto& d : structs.at(curid()).members)
-				if (d.id == id)  throw WizParseError(WIZERR_REDIM, id);
-			structs.at(curid()).members.push_back({ type, id, isarray });
-		}
-		else if (curstate() == PS_FUNCTION) {                              // dim-short as function argument
-			for (const auto& d : functions.at(curid()).args)
-				if (d.id == id)  throw WizParseError(WIZERR_REDIM, id);
-			functions.at(curid()).args.push_back({ type, id, isarray });
-		}
-		else if (warn_flag)                                                // unknown context
-			statewarn(),  Output::dim_short(type, id, isarray);
+		// if      (curstate() == PS_STRUCT) {                                // dim-short as struct member
+		// 	for (const auto& d : structs.at(curid()).members)
+		// 		if (d.id == id)  throw WizParseError(WIZERR_REDIM, id);
+		// 	structs.at(curid()).members.push_back({ type, id, isarray });
+		// }
+		// else if (curstate() == PS_FUNCTION) {                              // dim-short as function argument
+		// 	for (const auto& d : functions.at(curid()).args)
+		// 		if (d.id == id)  throw WizParseError(WIZERR_REDIM, id);
+		// 	functions.at(curid()).args.push_back({ type, id, isarray });
+		// }
+		// else if (warn_flag)                                                // unknown context
+		// 	statewarn(),  Output::dim_short(type, id, isarray);
+
+		if      (curstate() == PS_STRUCT)    structs.at(curid()).members.push_back({ type, id, isarray });
+		else if (curstate() == PS_FUNCTION)  functions.at(curid()).args.push_back ({ type, id, isarray });
+		else                                 statewarn(),  Output::dim_short(type, id, isarray);
 	}
 	void dim_start(const string& type, const string& id) {
-		dims.push_back({ type, id, false, -1, -1 });                       // save dim
+		dims.push_back({ type, id, false, -1, -1, dsym });                     // save dim
 		int idx = dims.size() - 1;
-		if (curstate() == PS_FUNCTION) {                                   // function scope dim
-			for (int d : functions.at(curid()).dims)
-				if (dims.at(d).id == id)  throw WizParseError(WIZERR_REDIM, id);
-			functions.at(curid()).dims.push_back(idx);
-		}
-		else {                                                             // global scope dim
-			for (int d : global.dims)
-				if (dims.at(d).id == id)  throw WizParseError(WIZERR_REDIM, id);
-			global.dims.push_back(idx);
-		}
+		// if (curstate() == PS_FUNCTION) {                                   // function scope dim
+		// 	for (int d : functions.at(curid()).dims)
+		// 		if (dims.at(d).id == id)  throw WizParseError(WIZERR_REDIM, id);
+		// 	functions.at(curid()).dims.push_back(idx);
+		// }
+		// else {                                                             // global scope dim
+		// 	for (int d : global.dims)
+		// 		if (dims.at(d).id == id)  throw WizParseError(WIZERR_REDIM, id);
+		// 	global.dims.push_back(idx);
+		// }
+
+		if    (curstate() == PS_FUNCTION)  functions.at(curid()).dims.push_back(idx);
+		else                               global.dims.push_back(idx);
 		state.push_back({ PS_DIM, idx });
 	}
 	void dim_isarray(bool val) {
@@ -185,8 +201,7 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void func_start(const string& id) {
-		functions.push_back({ id });
-			functions.back().block = -1;
+		functions.push_back({ id, {}, {}, -1, dsym });
 		state.push_back({ PS_FUNCTION, int(functions.size()-1) });
 	}
 	void func_end() {
@@ -238,7 +253,7 @@ struct OutputB : Output {
 		state.pop_back();
 	}
 	void while_start() {
-		whiles.push_back({ -1, -1 });
+		whiles.push_back({ -1, -1, dsym });
 		_block_append_stmt("while", whiles.size()-1);
 		state.push_back({ PS_STMT_WHILE, int(whiles.size()-1) });
 	}
@@ -349,17 +364,17 @@ struct OutputB : Output {
 			printf("\n");
 		printf(":struct:       $%d\n", structs.size());
 		for (int i = 0; i < structs.size(); i++) {
-			printf("  %s\n", structs[i].id.c_str());
+			printf("  %s   #%02d\n", structs[i].id.c_str(), structs[i].dsym.lno+1);
 			for (const auto& d : structs[i].members)
 				printf("\t%s %s %s\n", d.type.c_str(), d.id.c_str(), (d.isarray ? "[]" : ""));
 		}
 		printf(":dim:          $%d\n", dims.size());
-		for (int i = 0; i < dims.size(); i++) {
-			printf("  $%d  %s %s %s\n", i, dims[i].type.c_str(), dims[i].id.c_str(), (dims[i].isarray ? "[]" : ""));
-		}
+		for (int i = 0; i < dims.size(); i++)
+			printf("  $%d   #%02d   %s %s %s\n", 
+				i, dims[i].dsym.lno+1, dims[i].type.c_str(), dims[i].id.c_str(), (dims[i].isarray ? "[]" : "") );
 		printf(":function:     $%d\n", functions.size());
 		for (int i = 0; i < functions.size(); i++) {
-			printf("  %s\n", functions[i].id.c_str());
+			printf("  %s   #%02d\n", functions[i].id.c_str(), functions[i].dsym.lno+1);
 			for (const auto& d : functions[i].args)
 				printf("\t%s %s %s\n", d.type.c_str(), d.id.c_str(), (d.isarray ? "[]" : ""));
 			printf("\tdims   ");
@@ -391,13 +406,13 @@ struct OutputB : Output {
 			// for (const auto& it : ifs[i].ifthens)
 			// 	printf("(cond $%d, block $%d)  ", it.cond, it.block);
 			// printf("\n");
-			printf("  $%d\n", i);
+			printf("  $%d   #%02d\n", i, ifs[i].dsym.lno+1);
 			for (const auto& it : ifs[i].ifthens)
 				printf("\tcond $%d, block $%d\n", it.cond, it.block);
 		}
 		printf(":while:        $%d\n", whiles.size());
 		for (int i = 0; i < whiles.size(); i++) {
-			printf("  $%d \tcond $%d, block $%d\n", i, whiles[i].cond, whiles[i].block);
+			printf("  $%d \t#%02d   cond $%d, block $%d\n", i, whiles[i].dsym.lno+1, whiles[i].cond, whiles[i].block);
 		}
 		printf(":return:       $%d\n", returns.size());
 		for (int i = 0; i < returns.size(); i++) {

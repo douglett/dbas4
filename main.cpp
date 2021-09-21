@@ -44,5 +44,5 @@ int main() {
 	outp.show();
 	Runtime1 run1 = { outp };
 	run1.init();
-	run1.r_func("main");
+	// run1.r_func("main");
 }

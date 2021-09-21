@@ -45,6 +45,7 @@ struct Method2 {
 
 	void ps_dim() {
 		bool isarray = false;
+		outp.dsym.lno = inp.lineindex();
 		if    (inp.get("'dim @identifier @identifier", r1))  outp.dim_start( r1.at(0),  r1.at(1) );
 		else  inp.expect("'dim @identifier", r1),            outp.dim_start( "int", r1.at(0) );
 		if    (inp.get("'[ ']"))                             isarray = true,  outp.dim_isarray(true);
@@ -61,6 +62,7 @@ struct Method2 {
 	}
 
 	void ps_struct() {
+		outp.dsym.lno = inp.lineindex();
 		inp.expect("'struct @identifier endl", r1);
 		outp.struct_start(r1.at(0));
 		while (true)
@@ -73,6 +75,7 @@ struct Method2 {
 	}
 
 	void ps_function() {
+		outp.dsym.lno = inp.lineindex();
 		inp.expect("'function @identifier '(", r1);
 		outp.func_start(r1.at(0));
 		bool first = true;
@@ -127,6 +130,7 @@ struct Method2 {
 	}
 
 	void ps_if() {
+		outp.dsym.lno = inp.lineindex();
 		inp.expect("'if");
 		outp.if_start();
 		// outp.if_cond();
@@ -139,6 +143,7 @@ struct Method2 {
 	}
 
 	void ps_while() {
+		outp.dsym.lno = inp.lineindex();
 		inp.expect("'while");
 		outp.while_start();
 		ps_expression();
