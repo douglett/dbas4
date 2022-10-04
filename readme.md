@@ -1,7 +1,7 @@
-WizardBasic
-===========
+dbas4
+=====
 
-(dbas-4)
+(formerly WizardBasic)
 
 A cool Basic written by me!
 
